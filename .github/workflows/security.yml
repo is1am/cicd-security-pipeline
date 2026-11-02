@@ -30,7 +30,7 @@ jobs:
       contents: read
       security-events: write      # загрузка SARIF в Code Scanning
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -58,7 +58,7 @@ jobs:
     container:
       image: semgrep/semgrep:1.183.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Semgrep (стандартные наборы + собственные RBAC-правила)
         run: >
           semgrep scan --metrics=off
@@ -82,7 +82,7 @@ jobs:
     name: SCA · pip-audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -101,7 +101,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trivy fs (JSON для Security Gate)
         uses: aquasecurity/trivy-action@0.33.1
         with:
@@ -134,7 +134,7 @@ jobs:
     name: Secrets · Gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0          # проверяется вся история коммитов
       - uses: gitleaks/gitleaks-action@v2
@@ -146,7 +146,7 @@ jobs:
     name: Tests · pytest (RBAC)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -163,7 +163,7 @@ jobs:
     needs: [sast-bandit, sast-semgrep, sca-pip-audit, sca-trivy]
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
