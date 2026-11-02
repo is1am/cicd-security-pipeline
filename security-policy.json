@@ -1,0 +1,18 @@
+{
+  "_comment": "Политика Security Gate: что блокирует слияние. Исключения — только с обоснованием и сроком.",
+  "block": {
+    "bandit_min_severity": "MEDIUM",
+    "bandit_min_confidence": "MEDIUM",
+    "semgrep_severities": ["ERROR", "WARNING"],
+    "sca_block_if_fix_available": true,
+    "trivy_severities": ["CRITICAL", "HIGH", "MEDIUM"]
+  },
+  "ignore": [
+    {
+      "id": "B105",
+      "path": "app/main.py",
+      "reason": "Ложное срабатывание: строка 'bearer' — тип токена OAuth 2.0, не пароль",
+      "expires": "2027-06-30"
+    }
+  ]
+}

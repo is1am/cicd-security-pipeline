@@ -1,0 +1,175 @@
+# CI/CD Security Pipeline: SAST + SCA + Secrets + тесты + Security Gate.
+name: security-pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"   # еженедельно: новые CVE появляются и без изменений кода
+  workflow_dispatch:
+
+# Принцип наименьших привилегий для GITHUB_TOKEN
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  # ---------------------------------------------------------------- SAST
+  sast-bandit:
+    name: SAST · Bandit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write      # загрузка SARIF в Code Scanning
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install "bandit[sarif]==1.9.4"
+      - name: Bandit (JSON для Security Gate)
+        run: bandit -r app -f json -o bandit.json --exit-zero
+      - name: Bandit (SARIF для вкладки Security)
+        run: bandit -r app -f sarif -o bandit.sarif --exit-zero
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit.sarif
+          category: bandit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bandit
+          path: bandit.json
+
+  sast-semgrep:
+    name: SAST · Semgrep
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    container:
+      image: semgrep/semgrep:1.183.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep (стандартные наборы + собственные RBAC-правила)
+        run: >
+          semgrep scan --metrics=off
+          --config p/python --config p/owasp-top-ten
+          --config .semgrep/rbac-rules.yml
+          --json -o semgrep.json
+          --sarif-output=semgrep.sarif
+          app
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+      - uses: actions/upload-artifact@v4
+        with:
+          name: semgrep
+          path: semgrep.json
+
+  # ----------------------------------------------------------------- SCA
+  sca-pip-audit:
+    name: SCA · pip-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install pip-audit==2.10.1
+      - name: pip-audit (полное дерево зависимостей, база PyPI/OSV)
+        run: pip-audit -r requirements.txt -f json -o pip-audit.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit
+          path: pip-audit.json
+
+  sca-trivy:
+    name: SCA · Trivy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy fs (JSON для Security Gate)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          format: json
+          output: trivy.json
+      - name: Trivy fs (SARIF для вкладки Security)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          format: sarif
+          output: trivy.sarif
+          severity: MEDIUM,HIGH,CRITICAL
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trivy
+          path: trivy.json
+
+  # ------------------------------------------------------------- Secrets
+  secrets-gitleaks:
+    name: Secrets · Gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # проверяется вся история коммитов
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # --------------------------------------------------------------- Tests
+  tests:
+    name: Tests · pytest (RBAC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest -v
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST || 'ci-only-secret-0123456789abcdef0123456789' }}
+
+  # -------------------------------------------------------- Security Gate
+  security-gate:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    needs: [sast-bandit, sast-semgrep, sca-pip-audit, sca-trivy]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: reports
+          merge-multiple: true
+      - name: Сводка и решение о пропуске сборки
+        run: python scripts/security_gate.py reports --policy security-policy.json --summary "$GITHUB_STEP_SUMMARY"

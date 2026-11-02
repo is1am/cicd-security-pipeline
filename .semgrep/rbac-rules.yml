@@ -1,0 +1,59 @@
+# Собственные правила Semgrep для RBAC-сервиса (дополняют наборы p/python, p/owasp-top-ten).
+rules:
+  - id: rbac-privileged-route-without-permission
+    message: >-
+      Привилегированный эндпоинт $PATH не проверяет разрешение через
+      require_permission(...). Достаточно любого валидного токена —
+      возможна эскалация привилегий (OWASP API5: Broken Function Level Authorization).
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-285: Improper Authorization"
+      owasp: "A01:2021 - Broken Access Control"
+      category: security
+    patterns:
+      - pattern: |
+          @$APP.$METHOD($PATH, ...)
+          def $FUNC(...):
+            ...
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: ^(get|post|put|patch|delete)$
+      - metavariable-regex:
+          metavariable: $PATH
+          regex: ^["']/api/v1/(admin|moderator)
+      - pattern-not: |
+          @$APP.$METHOD($PATH, ...)
+          def $FUNC(..., $U = Depends(require_permission(...)), ...):
+            ...
+      - pattern-not: |
+          @$APP.$METHOD($PATH, ..., dependencies=[..., Depends(require_permission(...)), ...], ...)
+          def $FUNC(...):
+            ...
+
+  - id: jwt-decode-without-verification
+    message: >-
+      JWT декодируется без проверки подписи — злоумышленник может подделать
+      токен с произвольными claims (CWE-347).
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-347: Improper Verification of Cryptographic Signature"
+      owasp: "A02:2021 - Cryptographic Failures"
+      category: security
+    pattern-either:
+      - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+      - pattern: 'jwt.decode(..., verify=False, ...)'
+
+  - id: hardcoded-jwt-secret
+    message: "Секрет подписи JWT задан в исходном коде. Берите его из переменной окружения или Vault."
+    severity: ERROR
+    languages: [python]
+    metadata:
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      category: security
+    patterns:
+      - pattern: $NAME = "..."
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: (?i).*(secret|jwt_key|signing_key).*

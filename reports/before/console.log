@@ -1,0 +1,304 @@
+$ pytest -v -p no:cacheprovider
+============================= test session starts =============================
+platform win32 -- Python 3.10.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\.venv\Scripts\python.exe
+rootdir: C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security
+plugins: anyio-4.16.0, platformdirs-4.12.4
+collecting ... collected 0 items / 1 error
+
+=================================== ERRORS ====================================
+_____________________ ERROR collecting tests/test_rbac.py _____________________
+ImportError while importing test module 'C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\tests\test_rbac.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Program Files\Python310\lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\test_rbac.py:13: in <module>
+    from app.main import app  # noqa: E402
+E   ModuleNotFoundError: No module named 'app'
+============================== warnings summary ===============================
+.venv\lib\site-packages\fastapi\testclient.py:1
+  C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\.venv\lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_rbac.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+========================= 1 warning, 1 error in 2.52s =========================
+[Tests · pytest] exit=2 time=4.9s
+
+$ bandit -r app -f json -o reports\before\bandit.json --exit-zero
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[json]	INFO	JSON output written to file: C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\reports\before\bandit.json
+[SAST · Bandit] exit=0 time=1.6s
+
+$ bandit -r app -q
+Run started:2026-11-02 14:25:40.064101+00:00
+
+Test results:
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: app\main.py:6:0
+5	import os
+6	import subprocess
+7	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'bearer'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: app\main.py:57:70
+56	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
+57	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
+58	
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: app\main.py:70:12
+69	        rows = conn.execute(
+70	            f"SELECT id, username FROM users WHERE username LIKE '%{q}%'").fetchall()
+71	    return [dict(r) for r in rows]
+
+--------------------------------------------------
+>> Issue: [B602:subprocess_popen_with_shell_equals_true] subprocess call with shell=True identified, security issue.
+   Severity: High   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b602_subprocess_popen_with_shell_equals_true.html
+   Location: app\main.py:82:10
+81	    # нет проверки разрешения EXPORT_AUDIT + инъекция команд ОС
+82	    out = subprocess.check_output(f"echo audit export as {fmt}", shell=True)
+83	    return {"result": out.decode().strip()}
+
+--------------------------------------------------
+>> Issue: [B506:yaml_load] Use of unsafe yaml load. Allows instantiation of arbitrary objects. Consider yaml.safe_load().
+   Severity: Medium   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html
+   Location: app\main.py:95:11
+94	def import_users(payload: str, user=Depends(require_permission("MANAGE_USERS"))):
+95	    data = yaml.load(payload, Loader=yaml.Loader)  # небезопасная десериализация
+96	    return {"imported": len(data or [])}
+
+--------------------------------------------------
+>> Issue: [B104:hardcoded_bind_all_interfaces] Possible binding to all interfaces.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-605 (https://cwe.mitre.org/data/definitions/605.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html
+   Location: app\main.py:102:26
+101	
+102	    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=False)
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'rbac-super-secret-key-2026'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: app\security.py:10:13
+9	
+10	SECRET_KEY = "rbac-super-secret-key-2026"  # секрет прямо в коде
+11	ALGORITHM = "HS256"
+
+--------------------------------------------------
+>> Issue: [B324:hashlib] Use of weak MD5 hash for security. Consider usedforsecurity=False
+   Severity: High   Confidence: High
+   CWE: CWE-327 (https://cwe.mitre.org/data/definitions/327.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b324_hashlib.html
+   Location: app\security.py:15:11
+14	def hash_password(password: str) -> str:
+15	    return hashlib.md5(password.encode()).hexdigest()  # слабый хеш без соли
+16	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 164
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 3
+		Medium: 3
+		High: 2
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 4
+		High: 4
+Files skipped (0):
+[SAST · Bandit (вывод)] exit=1 time=1.3s
+
+$ semgrep scan --metrics=off --config p/python --config p/owasp-top-ten --config .semgrep/rbac-rules.yml --json -o reports\before\semgrep.json app
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 4 files tracked by git with 567 Code rules:
+                                                                                                                        
+  Language      Rules   Files          Origin      Rules                                                                
+ ─────────────────────────────        ───────────────────                                                               
+  python          154       4          Community     564                                                                
+  <multilang>       5       4          Custom          3                                                                
+                                                                                                                        
+                
+                
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 9 (9 blocking)
+ • Rules run: 159
+ • Targets scanned: 4
+ • Parsed lines: ~100.0%
+ • Scan was limited to files tracked by git
+ • For a detailed list of skipped files and lines, run semgrep with the --verbose flag
+Ran 159 rules on 4 files: 9 findings.
+[SAST · Semgrep] exit=0 time=14.3s
+
+$ pip-audit -r requirements.txt -f json -o reports\before\pip-audit.json
+Found 49 known vulnerabilities in 5 packages
+[SCA · pip-audit] exit=1 time=57.0s
+
+$ pip-audit -r requirements.txt --desc off
+Name      Version ID                  Fix Versions
+--------- ------- ------------------- ------------
+fastapi   0.109.0 PYSEC-2024-38       0.109.1
+pyjwt     2.3.0   PYSEC-2022-202      2.4.0
+pyjwt     2.3.0   PYSEC-2022-202      2.4.0
+pyjwt     2.3.0   PYSEC-2026-120      2.12.0
+pyjwt     2.3.0   PYSEC-2026-120      2.12.0
+pyjwt     2.3.0   PYSEC-2025-183
+pyjwt     2.3.0   PYSEC-2026-179      2.13.0
+pyjwt     2.3.0   PYSEC-2026-175      2.13.0
+pyjwt     2.3.0   PYSEC-2026-177      2.13.0
+pyjwt     2.3.0   PYSEC-2026-177      2.13.0
+pyjwt     2.3.0   PYSEC-2026-179      2.13.0
+pyjwt     2.3.0   PYSEC-2026-4145     2.14.0
+pyjwt     2.3.0   PYSEC-2026-4144     2.14.0
+pyjwt     2.3.0   PYSEC-2026-4148     2.14.0
+pyjwt     2.3.0   PYSEC-2026-4140     2.14.0
+pyjwt     2.3.0   PYSEC-2026-4141     2.15.0
+pyjwt     2.3.0   PYSEC-2026-4147     2.14.0
+pyjwt     2.3.0   PYSEC-2026-4183     2.15.0
+pyjwt     2.3.0   GHSA-pxh4-856f-4h89 2.14.0
+requests  2.31.0  PYSEC-2026-1873     2.32.0
+requests  2.31.0  PYSEC-2026-1872     2.32.4
+requests  2.31.0  PYSEC-2026-2275     2.33.0
+requests  2.31.0  PYSEC-2026-1873     2.32.0
+requests  2.31.0  PYSEC-2026-1872     2.32.4
+requests  2.31.0  PYSEC-2026-2275     2.33.0
+jinja2    3.1.2   PYSEC-2026-1473     3.1.3
+jinja2    3.1.2   PYSEC-2026-1474     3.1.4
+jinja2    3.1.2   PYSEC-2026-1475     3.1.5
+jinja2    3.1.2   PYSEC-2026-1472     3.1.5
+jinja2    3.1.2   PYSEC-2026-1471     3.1.6
+jinja2    3.1.2   PYSEC-2026-1473     3.1.3
+jinja2    3.1.2   PYSEC-2026-1471     3.1.6
+jinja2    3.1.2   PYSEC-2026-1474     3.1.4
+jinja2    3.1.2   PYSEC-2026-1475     3.1.5
+jinja2    3.1.2   PYSEC-2026-1472     3.1.5
+starlette 0.35.1  PYSEC-2026-1943     0.40.0
+starlette 0.35.1  PYSEC-2026-1941     0.47.2
+starlette 0.35.1  PYSEC-2026-161      1.0.1
+starlette 0.35.1  PYSEC-2026-161      1.0.1
+starlette 0.35.1  PYSEC-2026-2281     1.1.0
+starlette 0.35.1  PYSEC-2026-2280     1.1.0
+starlette 0.35.1  PYSEC-2026-249      1.3.1
+starlette 0.35.1  PYSEC-2026-248      1.3.0
+starlette 0.35.1  PYSEC-2026-249      1.3.1
+starlette 0.35.1  PYSEC-2026-248      1.3.0
+starlette 0.35.1  PYSEC-2026-1943     0.40.0
+starlette 0.35.1  PYSEC-2026-1941     0.47.2
+starlette 0.35.1  PYSEC-2026-2281     1.1.0
+starlette 0.35.1  PYSEC-2026-2280     1.1.0
+Found 49 known vulnerabilities in 5 packages
+[SCA · pip-audit (вывод)] exit=1 time=53.3s
+
+$ python.exe scripts/security_gate.py reports\before --policy security-policy.json --json reports\before\gate.json
+## Security Gate
+
+| Инструмент | Тип | Всего | Блокирующих |
+|---|---|---|---|
+| Bandit | SAST | 8 | 5 |
+| Semgrep | SAST | 9 | 9 |
+| pip-audit | SCA | 49 | 48 |
+| Trivy | SCA | 0 | 0 |
+
+### Блокирующие находки
+
+| Инструмент | Правило / CVE | Где | Уровень |
+|---|---|---|---|
+| Bandit | B608 hardcoded_sql_expressions | app/main.py:70 | MEDIUM |
+| Bandit | B602 subprocess_popen_with_shell_equals_true | app/main.py:82 | HIGH |
+| Bandit | B506 yaml_load | app/main.py:95 | MEDIUM |
+| Bandit | B104 hardcoded_bind_all_interfaces | app/main.py:102 | MEDIUM |
+| Bandit | B324 hashlib | app/security.py:15 | HIGH |
+| Semgrep | rbac-privileged-route-without-permission | app/main.py:79 | ERROR |
+| Semgrep | subprocess-shell-true | app/main.py:82 | ERROR |
+| Semgrep | avoid-pyyaml-load | app/main.py:95 | ERROR |
+| Semgrep | hardcoded-jwt-secret | app/security.py:10 | ERROR |
+| Semgrep | insecure-hash-algorithm-md5 | app/security.py:15 | WARNING |
+| Semgrep | md5-used-as-password | app/security.py:15 | WARNING |
+| Semgrep | jwt-python-hardcoded-secret | app/security.py:26 | ERROR |
+| Semgrep | jwt-decode-without-verification | app/security.py:31 | ERROR |
+| Semgrep | unverified-jwt-decode | app/security.py:31 | ERROR |
+| pip-audit | CVE-2024-24762 | fastapi 0.109.0 → 0.109.1 | — |
+| pip-audit | CVE-2022-29217 | pyjwt 2.3.0 → 2.4.0 | — |
+| pip-audit | CVE-2022-29217 | pyjwt 2.3.0 → 2.4.0 | — |
+| pip-audit | CVE-2026-32597 | pyjwt 2.3.0 → 2.12.0 | — |
+| pip-audit | CVE-2026-32597 | pyjwt 2.3.0 → 2.12.0 | — |
+| pip-audit | CVE-2026-48526 | pyjwt 2.3.0 → 2.13.0 | — |
+| pip-audit | CVE-2026-48522 | pyjwt 2.3.0 → 2.13.0 | — |
+| pip-audit | CVE-2026-48524 | pyjwt 2.3.0 → 2.13.0 | — |
+| pip-audit | CVE-2026-48524 | pyjwt 2.3.0 → 2.13.0 | — |
+| pip-audit | CVE-2026-48526 | pyjwt 2.3.0 → 2.13.0 | — |
+| pip-audit | CVE-2026-102268 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2026-102267 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2026-102270 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2026-101917 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2026-101918 | pyjwt 2.3.0 → 2.15.0 | — |
+| pip-audit | CVE-2026-102269 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2026-102275 | pyjwt 2.3.0 → 2.15.0 | — |
+| pip-audit | GHSA-pxh4-856f-4h89 | pyjwt 2.3.0 → 2.14.0 | — |
+| pip-audit | CVE-2024-35195 | requests 2.31.0 → 2.32.0 | — |
+| pip-audit | CVE-2024-47081 | requests 2.31.0 → 2.32.4 | — |
+| pip-audit | CVE-2026-25645 | requests 2.31.0 → 2.33.0 | — |
+| pip-audit | CVE-2024-35195 | requests 2.31.0 → 2.32.0 | — |
+| pip-audit | CVE-2024-47081 | requests 2.31.0 → 2.32.4 | — |
+| pip-audit | CVE-2026-25645 | requests 2.31.0 → 2.33.0 | — |
+| pip-audit | CVE-2024-22195 | jinja2 3.1.2 → 3.1.3 | — |
+| pip-audit | CVE-2024-34064 | jinja2 3.1.2 → 3.1.4 | — |
+| pip-audit | CVE-2024-56326 | jinja2 3.1.2 → 3.1.5 | — |
+| pip-audit | CVE-2024-56201 | jinja2 3.1.2 → 3.1.5 | — |
+| pip-audit | CVE-2025-27516 | jinja2 3.1.2 → 3.1.6 | — |
+| pip-audit | CVE-2024-22195 | jinja2 3.1.2 → 3.1.3 | — |
+| pip-audit | CVE-2025-27516 | jinja2 3.1.2 → 3.1.6 | — |
+| pip-audit | CVE-2024-34064 | jinja2 3.1.2 → 3.1.4 | — |
+| pip-audit | CVE-2024-56326 | jinja2 3.1.2 → 3.1.5 | — |
+| pip-audit | CVE-2024-56201 | jinja2 3.1.2 → 3.1.5 | — |
+| pip-audit | CVE-2024-47874 | starlette 0.35.1 → 0.40.0 | — |
+| pip-audit | CVE-2025-54121 | starlette 0.35.1 → 0.47.2 | — |
+| pip-audit | CVE-2026-48710 | starlette 0.35.1 → 1.0.1 | — |
+| pip-audit | CVE-2026-48710 | starlette 0.35.1 → 1.0.1 | — |
+| pip-audit | CVE-2026-48818 | starlette 0.35.1 → 1.1.0 | — |
+| pip-audit | CVE-2026-48817 | starlette 0.35.1 → 1.1.0 | — |
+| pip-audit | CVE-2026-54283 | starlette 0.35.1 → 1.3.1 | — |
+| pip-audit | CVE-2026-54282 | starlette 0.35.1 → 1.3.0 | — |
+| pip-audit | CVE-2026-54283 | starlette 0.35.1 → 1.3.1 | — |
+| pip-audit | CVE-2026-54282 | starlette 0.35.1 → 1.3.0 | — |
+| pip-audit | CVE-2024-47874 | starlette 0.35.1 → 0.40.0 | — |
+| pip-audit | CVE-2025-54121 | starlette 0.35.1 → 0.47.2 | — |
+| pip-audit | CVE-2026-48818 | starlette 0.35.1 → 1.1.0 | — |
+| pip-audit | CVE-2026-48817 | starlette 0.35.1 → 1.1.0 | — |
+
+**Результат: ЗАБЛОКИРОВАНО ❌**
+[Security Gate] exit=1 time=0.4s

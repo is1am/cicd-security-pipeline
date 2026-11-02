@@ -1,0 +1,233 @@
+{
+  "errors": [],
+  "generated_at": "2026-11-02T14:25:38Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 4,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 4,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 2,
+      "SEVERITY.LOW": 3,
+      "SEVERITY.MEDIUM": 3,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 164,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "app\\__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 0,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "app\\db.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 80,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "app\\main.py": {
+      "CONFIDENCE.HIGH": 3,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 3,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 1,
+      "SEVERITY.LOW": 2,
+      "SEVERITY.MEDIUM": 3,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 68,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "app\\security.py": {
+      "CONFIDENCE.HIGH": 1,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 1,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 16,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": [
+    {
+      "code": "5 import os\n6 import subprocess\n7 \n",
+      "col_offset": 0,
+      "end_col_offset": 17,
+      "filename": "app\\main.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Consider possible security implications associated with the subprocess module.",
+      "line_number": 6,
+      "line_range": [
+        6
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess",
+      "test_id": "B404",
+      "test_name": "blacklist"
+    },
+    {
+      "code": "56         raise HTTPException(status.HTTP_401_UNAUTHORIZED, \"\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u043b\u043e\u0433\u0438\u043d \u0438\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c\")\n57     return {\"access_token\": create_token(row[\"id\"], row[\"username\"]), \"token_type\": \"bearer\"}\n58 \n",
+      "col_offset": 70,
+      "end_col_offset": 82,
+      "filename": "app\\main.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'bearer'",
+      "line_number": 57,
+      "line_range": [
+        57
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "69         rows = conn.execute(\n70             f\"SELECT id, username FROM users WHERE username LIKE '%{q}%'\").fetchall()\n71     return [dict(r) for r in rows]\n",
+      "col_offset": 12,
+      "end_col_offset": 73,
+      "filename": "app\\main.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 89,
+        "link": "https://cwe.mitre.org/data/definitions/89.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible SQL injection vector through string-based query construction.",
+      "line_number": 70,
+      "line_range": [
+        70
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html",
+      "test_id": "B608",
+      "test_name": "hardcoded_sql_expressions"
+    },
+    {
+      "code": "81     # \u043d\u0435\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u043a\u0438 \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043d\u0438\u044f EXPORT_AUDIT + \u0438\u043d\u044a\u0435\u043a\u0446\u0438\u044f \u043a\u043e\u043c\u0430\u043d\u0434 \u041e\u0421\n82     out = subprocess.check_output(f\"echo audit export as {fmt}\", shell=True)\n83     return {\"result\": out.decode().strip()}\n",
+      "col_offset": 10,
+      "end_col_offset": 76,
+      "filename": "app\\main.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 78,
+        "link": "https://cwe.mitre.org/data/definitions/78.html"
+      },
+      "issue_severity": "HIGH",
+      "issue_text": "subprocess call with shell=True identified, security issue.",
+      "line_number": 82,
+      "line_range": [
+        82
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b602_subprocess_popen_with_shell_equals_true.html",
+      "test_id": "B602",
+      "test_name": "subprocess_popen_with_shell_equals_true"
+    },
+    {
+      "code": "94 def import_users(payload: str, user=Depends(require_permission(\"MANAGE_USERS\"))):\n95     data = yaml.load(payload, Loader=yaml.Loader)  # \u043d\u0435\u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u0430\u044f \u0434\u0435\u0441\u0435\u0440\u0438\u0430\u043b\u0438\u0437\u0430\u0446\u0438\u044f\n96     return {\"imported\": len(data or [])}\n",
+      "col_offset": 11,
+      "end_col_offset": 49,
+      "filename": "app\\main.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 20,
+        "link": "https://cwe.mitre.org/data/definitions/20.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Use of unsafe yaml load. Allows instantiation of arbitrary objects. Consider yaml.safe_load().",
+      "line_number": 95,
+      "line_range": [
+        95
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b506_yaml_load.html",
+      "test_id": "B506",
+      "test_name": "yaml_load"
+    },
+    {
+      "code": "101 \n102     uvicorn.run(app, host=\"0.0.0.0\", port=int(os.environ.get(\"PORT\", 8000)), reload=False)\n",
+      "col_offset": 26,
+      "end_col_offset": 35,
+      "filename": "app\\main.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 605,
+        "link": "https://cwe.mitre.org/data/definitions/605.html"
+      },
+      "issue_severity": "MEDIUM",
+      "issue_text": "Possible binding to all interfaces.",
+      "line_number": 102,
+      "line_range": [
+        102
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b104_hardcoded_bind_all_interfaces.html",
+      "test_id": "B104",
+      "test_name": "hardcoded_bind_all_interfaces"
+    },
+    {
+      "code": "9 \n10 SECRET_KEY = \"rbac-super-secret-key-2026\"  # \u0441\u0435\u043a\u0440\u0435\u0442 \u043f\u0440\u044f\u043c\u043e \u0432 \u043a\u043e\u0434\u0435\n11 ALGORITHM = \"HS256\"\n",
+      "col_offset": 13,
+      "end_col_offset": 41,
+      "filename": "app\\security.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'rbac-super-secret-key-2026'",
+      "line_number": 10,
+      "line_range": [
+        10
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
+      "test_id": "B105",
+      "test_name": "hardcoded_password_string"
+    },
+    {
+      "code": "14 def hash_password(password: str) -> str:\n15     return hashlib.md5(password.encode()).hexdigest()  # \u0441\u043b\u0430\u0431\u044b\u0439 \u0445\u0435\u0448 \u0431\u0435\u0437 \u0441\u043e\u043b\u0438\n16 \n",
+      "col_offset": 11,
+      "end_col_offset": 41,
+      "filename": "app\\security.py",
+      "issue_confidence": "HIGH",
+      "issue_cwe": {
+        "id": 327,
+        "link": "https://cwe.mitre.org/data/definitions/327.html"
+      },
+      "issue_severity": "HIGH",
+      "issue_text": "Use of weak MD5 hash for security. Consider usedforsecurity=False",
+      "line_number": 15,
+      "line_range": [
+        15
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b324_hashlib.html",
+      "test_id": "B324",
+      "test_name": "hashlib"
+    }
+  ]
+}

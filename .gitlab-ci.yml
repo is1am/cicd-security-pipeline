@@ -1,0 +1,115 @@
+# CI/CD Security Pipeline для GitLab: SAST + SCA + Secrets + тесты + Security Gate.
+# Отчёты публикуются в формате GitLab (artifacts:reports) и видны в Merge Request
+# и в Security Dashboard; собственные джобы работают и на бесплатном тарифе.
+
+stages:
+  - test
+  - security
+  - gate
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  SEMGREP_IMAGE: semgrep/semgrep:1.183.0
+  TRIVY_IMAGE: aquasec/trivy:0.67.2
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+# Встроенный анализатор секретов GitLab (доступен на всех тарифах)
+include:
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+
+secret_detection:
+  stage: security
+
+.python:
+  image: python:3.12-slim
+  cache:
+    paths: [.cache/pip]
+
+# ------------------------------------------------------------------ Tests
+pytest:
+  extends: .python
+  stage: test
+  variables:
+    JWT_SECRET: ci-only-secret-0123456789abcdef0123456789
+  script:
+    - pip install -r requirements.txt -r requirements-dev.txt
+    - pytest -v --junitxml=junit.xml
+  artifacts:
+    when: always
+    reports:
+      junit: junit.xml
+
+# ------------------------------------------------------------------- SAST
+sast:bandit:
+  extends: .python
+  stage: security
+  script:
+    - pip install bandit==1.9.4
+    - bandit -r app -f json -o bandit.json --exit-zero
+  artifacts:
+    when: always
+    paths: [bandit.json]
+
+sast:semgrep:
+  stage: security
+  image: $SEMGREP_IMAGE
+  script:
+    - >
+      semgrep scan --metrics=off
+      --config p/python --config p/owasp-top-ten
+      --config .semgrep/rbac-rules.yml
+      --json -o semgrep.json
+      --gitlab-sast-output=gl-sast-report.json
+      app
+  artifacts:
+    when: always
+    paths: [semgrep.json]
+    reports:
+      sast: gl-sast-report.json
+
+# -------------------------------------------------------------------- SCA
+sca:pip-audit:
+  extends: .python
+  stage: security
+  script:
+    - pip install pip-audit==2.10.1
+    - pip-audit -r requirements.txt -f json -o pip-audit.json || true
+  artifacts:
+    when: always
+    paths: [pip-audit.json]
+
+sca:trivy:
+  stage: security
+  image:
+    name: $TRIVY_IMAGE
+    entrypoint: [""]
+  script:
+    - trivy fs --scanners vuln --format json -o trivy.json .
+    - trivy fs --scanners vuln --format template
+        --template "@/contrib/gitlab.tpl" -o gl-dependency-scanning-report.json .
+  artifacts:
+    when: always
+    paths: [trivy.json]
+    reports:
+      dependency_scanning: gl-dependency-scanning-report.json
+
+# ------------------------------------------------------------------- Gate
+security-gate:
+  extends: .python
+  stage: gate
+  needs:
+    - job: sast:bandit
+    - job: sast:semgrep
+    - job: sca:pip-audit
+    - job: sca:trivy
+  script:
+    - mkdir -p reports && cp bandit.json semgrep.json pip-audit.json trivy.json reports/
+    - python scripts/security_gate.py reports --policy security-policy.json --summary gate-summary.md
+  artifacts:
+    when: always
+    paths: [gate-summary.md]

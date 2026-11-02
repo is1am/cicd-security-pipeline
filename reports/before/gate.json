@@ -1,0 +1,534 @@
+{
+  "passed": false,
+  "missing": [],
+  "findings": [
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B404 blacklist",
+      "where": "app/main.py:6",
+      "severity": "LOW",
+      "blocking": false
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B105 hardcoded_password_string",
+      "where": "app/main.py:57",
+      "severity": "LOW",
+      "blocking": false
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B608 hardcoded_sql_expressions",
+      "where": "app/main.py:70",
+      "severity": "MEDIUM",
+      "blocking": true
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B602 subprocess_popen_with_shell_equals_true",
+      "where": "app/main.py:82",
+      "severity": "HIGH",
+      "blocking": true
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B506 yaml_load",
+      "where": "app/main.py:95",
+      "severity": "MEDIUM",
+      "blocking": true
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B104 hardcoded_bind_all_interfaces",
+      "where": "app/main.py:102",
+      "severity": "MEDIUM",
+      "blocking": true
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B105 hardcoded_password_string",
+      "where": "app/security.py:10",
+      "severity": "LOW",
+      "blocking": false
+    },
+    {
+      "tool": "Bandit",
+      "type": "SAST",
+      "id": "B324 hashlib",
+      "where": "app/security.py:15",
+      "severity": "HIGH",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "rbac-privileged-route-without-permission",
+      "where": "app/main.py:79",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "subprocess-shell-true",
+      "where": "app/main.py:82",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "avoid-pyyaml-load",
+      "where": "app/main.py:95",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "hardcoded-jwt-secret",
+      "where": "app/security.py:10",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "insecure-hash-algorithm-md5",
+      "where": "app/security.py:15",
+      "severity": "WARNING",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "md5-used-as-password",
+      "where": "app/security.py:15",
+      "severity": "WARNING",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "jwt-python-hardcoded-secret",
+      "where": "app/security.py:26",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "jwt-decode-without-verification",
+      "where": "app/security.py:31",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "Semgrep",
+      "type": "SAST",
+      "id": "unverified-jwt-decode",
+      "where": "app/security.py:31",
+      "severity": "ERROR",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-24762",
+      "where": "fastapi 0.109.0 → 0.109.1",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2022-29217",
+      "where": "pyjwt 2.3.0 → 2.4.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2022-29217",
+      "where": "pyjwt 2.3.0 → 2.4.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-32597",
+      "where": "pyjwt 2.3.0 → 2.12.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-32597",
+      "where": "pyjwt 2.3.0 → 2.12.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2025-45768",
+      "where": "pyjwt 2.3.0 → нет",
+      "severity": "—",
+      "blocking": false
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48526",
+      "where": "pyjwt 2.3.0 → 2.13.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48522",
+      "where": "pyjwt 2.3.0 → 2.13.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48524",
+      "where": "pyjwt 2.3.0 → 2.13.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48524",
+      "where": "pyjwt 2.3.0 → 2.13.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48526",
+      "where": "pyjwt 2.3.0 → 2.13.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-102268",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-102267",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-102270",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-101917",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-101918",
+      "where": "pyjwt 2.3.0 → 2.15.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-102269",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-102275",
+      "where": "pyjwt 2.3.0 → 2.15.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "GHSA-pxh4-856f-4h89",
+      "where": "pyjwt 2.3.0 → 2.14.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-35195",
+      "where": "requests 2.31.0 → 2.32.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-47081",
+      "where": "requests 2.31.0 → 2.32.4",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-25645",
+      "where": "requests 2.31.0 → 2.33.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-35195",
+      "where": "requests 2.31.0 → 2.32.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-47081",
+      "where": "requests 2.31.0 → 2.32.4",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-25645",
+      "where": "requests 2.31.0 → 2.33.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-22195",
+      "where": "jinja2 3.1.2 → 3.1.3",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-34064",
+      "where": "jinja2 3.1.2 → 3.1.4",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-56326",
+      "where": "jinja2 3.1.2 → 3.1.5",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-56201",
+      "where": "jinja2 3.1.2 → 3.1.5",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2025-27516",
+      "where": "jinja2 3.1.2 → 3.1.6",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-22195",
+      "where": "jinja2 3.1.2 → 3.1.3",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2025-27516",
+      "where": "jinja2 3.1.2 → 3.1.6",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-34064",
+      "where": "jinja2 3.1.2 → 3.1.4",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-56326",
+      "where": "jinja2 3.1.2 → 3.1.5",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-56201",
+      "where": "jinja2 3.1.2 → 3.1.5",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-47874",
+      "where": "starlette 0.35.1 → 0.40.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2025-54121",
+      "where": "starlette 0.35.1 → 0.47.2",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48710",
+      "where": "starlette 0.35.1 → 1.0.1",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48710",
+      "where": "starlette 0.35.1 → 1.0.1",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48818",
+      "where": "starlette 0.35.1 → 1.1.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48817",
+      "where": "starlette 0.35.1 → 1.1.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-54283",
+      "where": "starlette 0.35.1 → 1.3.1",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-54282",
+      "where": "starlette 0.35.1 → 1.3.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-54283",
+      "where": "starlette 0.35.1 → 1.3.1",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-54282",
+      "where": "starlette 0.35.1 → 1.3.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2024-47874",
+      "where": "starlette 0.35.1 → 0.40.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2025-54121",
+      "where": "starlette 0.35.1 → 0.47.2",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48818",
+      "where": "starlette 0.35.1 → 1.1.0",
+      "severity": "—",
+      "blocking": true
+    },
+    {
+      "tool": "pip-audit",
+      "type": "SCA",
+      "id": "CVE-2026-48817",
+      "where": "starlette 0.35.1 → 1.1.0",
+      "severity": "—",
+      "blocking": true
+    }
+  ]
+}
