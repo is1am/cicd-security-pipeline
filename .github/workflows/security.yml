@@ -103,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy fs (JSON для Security Gate)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -111,7 +111,7 @@ jobs:
           format: json
           output: trivy.json
       - name: Trivy fs (SARIF для вкладки Security)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
