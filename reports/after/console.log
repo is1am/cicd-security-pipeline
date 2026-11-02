@@ -1,0 +1,116 @@
+$ pytest -v -p no:cacheprovider
+============================= test session starts =============================
+platform win32 -- Python 3.10.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\.venv\Scripts\python.exe
+rootdir: C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.16.0, platformdirs-4.12.4
+collecting ... collected 5 items
+
+tests/test_rbac.py::test_admin_creates_user PASSED                       [ 20%]
+tests/test_rbac.py::test_user_forbidden_on_admin PASSED                  [ 40%]
+tests/test_rbac.py::test_user_cannot_export_audit PASSED                 [ 60%]
+tests/test_rbac.py::test_forged_token_rejected PASSED                    [ 80%]
+tests/test_rbac.py::test_sql_injection_does_not_leak_users PASSED        [100%]
+
+============================== warnings summary ===============================
+.venv\lib\site-packages\fastapi\testclient.py:1
+  C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\.venv\lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 5 passed, 1 warning in 5.60s =========================
+[Tests · pytest] exit=0 time=7.8s
+
+$ bandit -r app -f json -o reports\after\bandit.json --exit-zero
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[json]	INFO	JSON output written to file: C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\reports\after\bandit.json
+[SAST · Bandit] exit=0 time=1.5s
+
+$ bandit -r app -q
+Run started:2026-11-02 14:31:14.016161+00:00
+
+Test results:
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'bearer'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: app\main.py:58:70
+57	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
+58	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
+59	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 179
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 1
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 1
+		High: 0
+Files skipped (0):
+[SAST · Bandit (вывод)] exit=1 time=1.7s
+
+$ semgrep scan --metrics=off --config p/python --config p/owasp-top-ten --config .semgrep/rbac-rules.yml --json -o reports\after\semgrep.json app
+┌─────────────┐
+│ Scan Status │
+└─────────────┘
+  Scanning 4 files tracked by git with 567 Code rules:
+                                                                                                                        
+  Language      Rules   Files          Origin      Rules                                                                
+ ─────────────────────────────        ───────────────────                                                               
+  python          154       4          Community     564                                                                
+  <multilang>       5       4          Custom          3                                                                
+                                                                                                                        
+                
+                
+┌──────────────┐
+│ Scan Summary │
+└──────────────┘
+✅ Scan completed successfully.
+ • Findings: 0 (0 blocking)
+ • Rules run: 159
+ • Targets scanned: 4
+ • Parsed lines: ~100.0%
+ • Scan was limited to files tracked by git
+ • For a detailed list of skipped files and lines, run semgrep with the --verbose flag
+Ran 159 rules on 4 files: 0 findings.
+(need more rules? `semgrep login` for additional free Semgrep Registry rules)
+
+If Semgrep missed a finding, please send us feedback to let us know!
+See https://semgrep.dev/docs/reporting-false-negatives/
+[SAST · Semgrep] exit=0 time=15.6s
+
+$ pip-audit -r requirements.txt -f json -o reports\after\pip-audit.json
+No known vulnerabilities found
+[SCA · pip-audit] exit=0 time=53.6s
+
+$ pip-audit -r requirements.txt --desc off
+No known vulnerabilities found
+[SCA · pip-audit (вывод)] exit=0 time=52.5s
+
+$ python.exe scripts/security_gate.py reports\after --policy security-policy.json --json reports\after\gate.json
+## Security Gate
+
+| Инструмент | Тип | Всего | Блокирующих |
+|---|---|---|---|
+| Bandit | SAST | 1 | 0 |
+| Semgrep | SAST | 0 | 0 |
+| pip-audit | SCA | 0 | 0 |
+| Trivy | SCA | 0 | 0 |
+
+**Результат: ПРОЙДЕН ✅**
+[Security Gate] exit=0 time=0.4s

@@ -1,9 +1,10 @@
 # main.py
 # RBAC-сервис из ПР5 (FastAPI). Объект проверки для SAST/SCA-пайплайна.
-# ВНИМАНИЕ: исходная (уязвимая) версия.
+# Исправленная версия по результатам SAST/SCA.
 
+import csv
+import io
 import os
-import subprocess
 
 import yaml
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -65,9 +66,9 @@ def public(user=Depends(require_permission("READ_PUBLIC"))):
 @app.get("/api/v1/users/search")
 def search_users(q: str, user=Depends(require_permission("READ_PUBLIC"))):
     with db.connect() as conn:
-        # SQL-инъекция: параметр подставляется в строку запроса
-        rows = conn.execute(
-            f"SELECT id, username FROM users WHERE username LIKE '%{q}%'").fetchall()
+        # параметризованный запрос: значение передаётся отдельно от SQL
+        rows = conn.execute("SELECT id, username FROM users WHERE username LIKE ?",
+                            (f"%{q}%",)).fetchall()
     return [dict(r) for r in rows]
 
 
@@ -77,10 +78,11 @@ def audit(user=Depends(require_permission("VIEW_AUDIT"))):
 
 
 @app.get("/api/v1/moderator/audit/export")
-def audit_export(fmt: str = "csv", user=Depends(get_current_user)):
-    # нет проверки разрешения EXPORT_AUDIT + инъекция команд ОС
-    out = subprocess.check_output(f"echo audit export as {fmt}", shell=True)
-    return {"result": out.decode().strip()}
+def audit_export(user=Depends(require_permission("EXPORT_AUDIT"))):
+    # экспорт формируется средствами Python, без вызова командной оболочки
+    buf = io.StringIO()
+    csv.writer(buf).writerows([["event"], ["login admin"], ["login moder"]])
+    return {"result": buf.getvalue()}
 
 
 @app.post("/api/v1/admin/users", status_code=201)
@@ -92,11 +94,12 @@ def create_user(body: UserIn, user=Depends(require_permission("MANAGE_USERS"))):
 
 @app.post("/api/v1/admin/import")
 def import_users(payload: str, user=Depends(require_permission("MANAGE_USERS"))):
-    data = yaml.load(payload, Loader=yaml.Loader)  # небезопасная десериализация
+    data = yaml.safe_load(payload)  # только базовые типы YAML, без создания объектов
     return {"imported": len(data or [])}
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=False)
+    uvicorn.run(app, host=os.environ.get("HOST", "127.0.0.1"),
+                port=int(os.environ.get("PORT", 8000)))
