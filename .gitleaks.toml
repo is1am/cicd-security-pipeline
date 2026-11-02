@@ -1,0 +1,9 @@
+# Конфигурация Gitleaks: стандартные правила + исключение для отчётов сканеров.
+# В reports/ лежат JSON-отчёты pip-audit, в описаниях CVE которых есть
+# демонстрационные ключи и JWT из advisory (ложные срабатывания).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Отчёты сканеров (данные, а не код)"
+paths = ['''^reports/''']

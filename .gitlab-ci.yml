@@ -108,8 +108,9 @@ security-gate:
     - job: sca:pip-audit
     - job: sca:trivy
   script:
-    - mkdir -p reports && cp bandit.json semgrep.json pip-audit.json trivy.json reports/
-    - python scripts/security_gate.py reports --policy security-policy.json --summary gate-summary.md
+    - mkdir -p reports
+    - for f in bandit.json semgrep.json pip-audit.json trivy.json; do [ -f "$f" ] && cp "$f" reports/ || true; done
+    - python scripts/security_gate.py reports --policy security-policy.json --require-trivy --summary gate-summary.md
   artifacts:
     when: always
     paths: [gate-summary.md]

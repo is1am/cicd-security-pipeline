@@ -2,7 +2,8 @@
 # Security Gate: собирает отчёты Bandit, Semgrep, pip-audit, Trivy,
 # применяет политику (security-policy.json) и завершает работу с кодом 1,
 # если есть блокирующие находки. Отсутствующий отчёт тоже блокирует сборку.
-# Запуск: python scripts/security_gate.py reports --policy security-policy.json [--summary out.md]
+# Запуск: python scripts/security_gate.py reports --policy security-policy.json
+#         [--require-trivy] [--summary out.md]
 
 import argparse
 import datetime
@@ -33,7 +34,7 @@ def ignored(policy, rule_id, path=""):
     return False
 
 
-def collect(folder, policy):
+def collect(folder, policy, require_trivy=False):
     """Возвращает список находок: (инструмент, тип, id, где, уровень, блокирует)."""
     block = policy["block"]
     findings, missing = [], []
@@ -79,7 +80,9 @@ def collect(folder, policy):
                                  f"{dep['name']} {dep['version']} → {fix}", "—", blocking))
 
     trivy = load(folder, "trivy.json")
-    if trivy is not None:      # Trivy есть только в CI; локально отчёт необязателен
+    if trivy is None and require_trivy:   # в CI обязателен, локально Trivy не запускается
+        missing.append("trivy.json")
+    if trivy is not None:
         for res in trivy.get("Results", []):
             for v in res.get("Vulnerabilities") or []:
                 blocking = v["Severity"] in block["trivy_severities"] \
@@ -94,12 +97,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folder", type=pathlib.Path)
     ap.add_argument("--policy", type=pathlib.Path, default=pathlib.Path("security-policy.json"))
+    ap.add_argument("--require-trivy", action="store_true",
+                    help="считать отсутствие trivy.json ошибкой (режим CI)")
     ap.add_argument("--summary", help="куда записать Markdown-сводку (например, $GITHUB_STEP_SUMMARY)")
     ap.add_argument("--json", help="куда записать результат в JSON")
     args = ap.parse_args()
 
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
-    findings, missing = collect(args.folder, policy)
+    findings, missing = collect(args.folder, policy, args.require_trivy)
     blocking = [f for f in findings if f[5]]
 
     lines = ["## Security Gate", "",
