@@ -388,8 +388,9 @@ table(["Компонент", "Версия / значение"],
        ["Bandit", version("bandit")],
        ["Semgrep", version("semgrep")],
        ["pip-audit", version("pip-audit")],
-       ["Trivy (в CI)", "aquasecurity/trivy-action 0.33.1, образ aquasec/trivy:0.67.2"],
-       ["Gitleaks (в CI)", "gitleaks/gitleaks-action@v2"],
+       ["Trivy (в CI)", "aquasecurity/trivy-action v0.36.0, образ aquasec/trivy:0.67.2"],
+       ["Gitleaks (в CI / локально)", "gitleaks/gitleaks-action@v3 / gitleaks 8.30.1"],
+       ["Репозиторий GitHub", "github.com/is1am/cicd-security-pipeline"],
        ["Система контроля версий", "git, ветка main"]],
       [8.0, 8.5], "Среда выполнения и версии инструментов")
 
@@ -401,6 +402,7 @@ table(["Путь", "Назначение"],
        [".gitlab-ci.yml", "пайплайн GitLab CI"],
        [".semgrep/rbac-rules.yml", "собственные правила Semgrep"],
        ["security-policy.json", "политика Security Gate (пороги и исключения)"],
+       [".gitleaks.toml", "стандартные правила Gitleaks + исключение для reports/"],
        ["scripts/security_gate.py", "сводка отчётов и решение «пропустить / заблокировать»"],
        ["scripts/run_local_scans.py", "локальный прогон тех же проверок, что и в CI"],
        ["reports/before, reports/after", "отчёты сканеров до и после исправлений"]],
@@ -628,6 +630,38 @@ table(["Показатель", "До", "После"],
         f"{count(after, 'pip-audit')} / {count(after, 'pip-audit', True)}"],
        ["Решение Security Gate", "ЗАБЛОКИРОВАНО (exit 1)", "ПРОЙДЕН (exit 0)"]],
       [7.5, 4.5, 4.5], "Сравнение результатов до и после исправлений")
+
+heading("9.1. Запуск в GitHub Actions", 2)
+para("Проект опубликован в публичном репозитории github.com/is1am/cicd-security-pipeline. "
+     "Первый запуск пайплайна (run #1) завершился с ошибкой, и разбор его результатов "
+     "оказался полезным сам по себе.")
+figure("screenshots/gh_run_fail.png", "Первый запуск в GitHub Actions (run #1): Trivy и Gitleaks не пройдены", 16)
+table(["Джоба", "Результат", "Причина и исправление"],
+      [["SCA · Trivy", "ошибка", "версия action указана как 0.33.1 вместо тега v0.33.1 — GitHub "
+        "не нашёл action; исправлено на aquasecurity/trivy-action@v0.36.0"],
+       ["Secrets · Gitleaks", "6 находок", "приватный EC-ключ, JWT и generic-api-key в "
+        "reports/before/pip-audit.json — это примеры из текстов advisory PyJWT, попавшие в "
+        "закоммиченный отчёт сканера (ложное срабатывание); добавлен .gitleaks.toml с "
+        "исключением для каталога reports/"],
+       ["Security Gate", "пройден (ошибка Gate)", "отчёт trivy.json отсутствовал, но Gate "
+        "считал его необязательным; добавлен флаг --require-trivy, в CI отсутствие отчёта "
+        "Trivy теперь блокирует сборку"],
+       ["Все джобы", "предупреждения", "actions на Node 20 устарели; обновлены до "
+        "checkout@v7, setup-python@v7, upload-artifact@v7, download-artifact@v8, "
+        "gitleaks-action@v3"]],
+      [3.4, 2.8, 10.3], "Разбор первого запуска в GitHub Actions")
+para("Отдельно стоит отметить результат Gitleaks: строку rbac-super-secret-key-2026, "
+     "которая действительно была секретом в исходной версии, он не обнаружил — её энтропия "
+     "слишком низка для его эвристик. Этот секрет нашли только Semgrep (собственное правило "
+     "hardcoded-jwt-secret и правило сообщества) и, с низким уровнем, Bandit. "
+     "Это ещё один довод в пользу сочетания разных классов сканеров. Найденный в истории git "
+     "секрет в реальном проекте нужно считать скомпрометированным и заменить, а не только "
+     "удалить из текущей версии кода.")
+para("Второй запуск (run #8, после исправлений) прошёл полностью: все семь джоб "
+     "завершились успешно, Security Gate разрешил сборку. Dependabot, включённый файлом "
+     ".github/dependabot.yml, сразу после публикации открыл pull request "
+     "«Bump fastapi from 0.141.1 to 0.162.0» — SCA работает и вне пайплайна.")
+figure("screenshots/gh_run_ok.png", "Запуск в GitHub Actions после исправлений (run #8): все проверки пройдены", 16)
 
 # --- 10. GitHub vs GitLab --------------------------------------------------
 heading("10. Сравнение GitHub Actions и GitLab CI")

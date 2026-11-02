@@ -21,5 +21,7 @@ python -m venv .venv
 
 ## Запуск в GitHub
 
+Репозиторий: https://github.com/is1am/cicd-security-pipeline
+
 Создайте репозиторий, выполните push, затем включите обязательную проверку
 `Security Gate` в Settings → Branches → Branch protection rules.
