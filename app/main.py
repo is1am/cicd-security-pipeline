@@ -9,7 +9,8 @@ import sqlite3
 from typing import Literal
 
 import yaml
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from app import db
@@ -37,11 +38,14 @@ class RoleIn(BaseModel):
     role: Role
 
 
-def get_current_user(authorization: str = Header(default="")):
-    if not authorization.startswith("Bearer "):
+bearer = HTTPBearer(auto_error=False)  # схема Bearer: кнопка Authorize в Swagger UI
+
+
+def get_current_user(cred: HTTPAuthorizationCredentials | None = Depends(bearer)):
+    if cred is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Требуется токен")
     try:
-        claims = decode_token(authorization[7:])
+        claims = decode_token(cred.credentials)
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Недействительный токен")
     with db.connect() as conn:

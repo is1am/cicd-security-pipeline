@@ -22,8 +22,8 @@ tests/test_rbac.py::test_role_change_applies_without_new_token PASSED    [100%]
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 8 passed, 1 warning in 5.61s =========================
-[Tests · pytest] exit=0 time=7.1s
+======================== 8 passed, 1 warning in 6.54s =========================
+[Tests · pytest] exit=0 time=8.0s
 
 $ bandit -r app -f json -o reports\after\bandit.json --exit-zero
 [main]	INFO	profile include tests: None
@@ -34,22 +34,22 @@ $ bandit -r app -f json -o reports\after\bandit.json --exit-zero
 [SAST · Bandit] exit=0 time=1.3s
 
 $ bandit -r app -q
-Run started:2026-11-04 06:51:48.774526+00:00
+Run started:2026-11-04 13:48:03.004542+00:00
 
 Test results:
 >> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'bearer'
    Severity: Low   Confidence: Medium
    CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
    More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: app\main.py:72:70
-71	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
-72	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
-73	
+   Location: app\main.py:76:70
+75	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
+76	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
+77	
 
 --------------------------------------------------
 
 Code scanned:
-	Total lines of code: 215
+	Total lines of code: 217
 	Total lines skipped (#nosec): 0
 	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
 
@@ -65,7 +65,7 @@ Run metrics:
 		Medium: 1
 		High: 0
 Files skipped (0):
-[SAST · Bandit (вывод)] exit=1 time=1.2s
+[SAST · Bandit (вывод)] exit=1 time=1.4s
 
 $ semgrep scan --metrics=off --config p/python --config p/owasp-top-ten --config .semgrep/rbac-rules.yml --json -o reports\after\semgrep.json app
 ┌─────────────┐
@@ -95,15 +95,15 @@ Ran 159 rules on 4 files: 0 findings.
 
 If Semgrep missed a finding, please send us feedback to let us know!
 See https://semgrep.dev/docs/reporting-false-negatives/
-[SAST · Semgrep] exit=0 time=15.6s
+[SAST · Semgrep] exit=0 time=17.5s
 
 $ pip-audit -r requirements.txt -f json -o reports\after\pip-audit.json
 No known vulnerabilities found
-[SCA · pip-audit] exit=0 time=58.0s
+[SCA · pip-audit] exit=0 time=59.0s
 
 $ pip-audit -r requirements.txt --desc off
 No known vulnerabilities found
-[SCA · pip-audit (вывод)] exit=0 time=39.4s
+[SCA · pip-audit (вывод)] exit=0 time=46.2s
 
 $ python.exe scripts/security_gate.py reports\after --policy security-policy.json --json reports\after\gate.json
 ## Security Gate

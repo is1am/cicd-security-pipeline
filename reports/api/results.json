@@ -2,7 +2,7 @@
   "summary": {
     "total": 21,
     "passed": 21,
-    "role_change_delay_ms": 26.4
+    "role_change_delay_ms": 22.0
   },
   "results": [
     {
@@ -18,12 +18,12 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 338.6,
+      "ms": 638.7,
       "response": {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6ImFkbWluIiwiaWF0IjoxNzkzNzc0OTc5LCJleHAiOjE3OTM3NzU4Nzl9.V81pacuCnIzNY1RFxivz5Ww4PCDs2oCzRGzkWi7Nlgk",
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6ImFkbWluIiwiaWF0IjoxNzkzNzk5OTM1LCJleHAiOjE3OTM4MDA4MzV9.Cc6tiKtBbVCxiqBK9ZjnJQaAbYtoy85wv5L_pGhmsEE",
         "token_type": "bearer"
       },
-      "at": 1793774979.1778946
+      "at": 1793799935.0831192
     },
     {
       "folder": "0. Аутентификация",
@@ -38,12 +38,12 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 252.2,
+      "ms": 448.3,
       "response": {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwibmFtZSI6Im1vZGVyIiwiaWF0IjoxNzkzNzc0OTc5LCJleHAiOjE3OTM3NzU4Nzl9.ewq7c1zQ8Q7UJXmilpXPIBVi9_pe2hpI1aI1R1gcbLs",
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwibmFtZSI6Im1vZGVyIiwiaWF0IjoxNzkzNzk5OTM1LCJleHAiOjE3OTM4MDA4MzV9.zgzsD7J5KoGTuiuvrG0ybQUw9ZbQgfnSRlGkYX1jrSE",
         "token_type": "bearer"
       },
-      "at": 1793774979.430509
+      "at": 1793799935.5314739
     },
     {
       "folder": "0. Аутентификация",
@@ -58,12 +58,12 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 262.9,
+      "ms": 450.6,
       "response": {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwibmFtZSI6InVzZXIiLCJpYXQiOjE3OTM3NzQ5NzksImV4cCI6MTc5Mzc3NTg3OX0.T2E0AhWPBDI1vOWto3aYR3ZWTMYV9-gvlowR2tS0HoQ",
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwibmFtZSI6InVzZXIiLCJpYXQiOjE3OTM3OTk5MzUsImV4cCI6MTc5MzgwMDgzNX0.s6JWeNX-UmYv1u2JeCL1FtBQ5CETM_DNccME2nwFe6o",
         "token_type": "bearer"
       },
-      "at": 1793774979.693301
+      "at": 1793799935.982141
     },
     {
       "folder": "1. Позитивные тесты",
@@ -72,20 +72,20 @@
       "url": "{{baseUrl}}/api/v1/admin/users",
       "auth": true,
       "body": {
-        "username": "employee_1793774979",
+        "username": "employee_1793799935",
         "password": "Employee#2026",
         "role": "USER"
       },
       "status": 201,
       "expected": 201,
       "passed": true,
-      "ms": 287.3,
+      "ms": 492.4,
       "response": {
         "id": 4,
-        "username": "employee_1793774979",
+        "username": "employee_1793799935",
         "role": "USER"
       },
-      "at": 1793774979.9801311
+      "at": 1793799936.4735153
     },
     {
       "folder": "1. Позитивные тесты",
@@ -97,7 +97,7 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 21.1,
+      "ms": 41.7,
       "response": [
         {
           "id": 1,
@@ -119,12 +119,12 @@
         },
         {
           "id": 4,
-          "username": "employee_1793774979",
+          "username": "employee_1793799935",
           "is_active": 1,
           "roles": "USER"
         }
       ],
-      "at": 1793774980.0012207
+      "at": 1793799936.5163417
     },
     {
       "folder": "1. Позитивные тесты",
@@ -136,14 +136,14 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 30.5,
+      "ms": 17.7,
       "response": {
         "events": [
           "login admin",
           "login moder"
         ]
       },
-      "at": 1793774980.0322707
+      "at": 1793799936.533796
     },
     {
       "folder": "1. Позитивные тесты",
@@ -155,11 +155,11 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 29.4,
+      "ms": 18.6,
       "response": {
         "message": "Привет, user"
       },
-      "at": 1793774980.0610049
+      "at": 1793799936.5525644
     },
     {
       "folder": "2. Негативные тесты",
@@ -171,11 +171,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 8.1,
+      "ms": 32.9,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.069785
+      "at": 1793799936.5847516
     },
     {
       "folder": "2. Негативные тесты",
@@ -191,11 +191,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 23.2,
+      "ms": 19.9,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.0933642
+      "at": 1793799936.6053417
     },
     {
       "folder": "2. Негативные тесты",
@@ -207,11 +207,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 29.5,
+      "ms": 17.8,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.1218307
+      "at": 1793799936.6241064
     },
     {
       "folder": "2. Негативные тесты",
@@ -227,11 +227,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 8.7,
+      "ms": 25.9,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.1316972
+      "at": 1793799936.6462727
     },
     {
       "folder": "2. Негативные тесты",
@@ -243,11 +243,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 24.1,
+      "ms": 32.3,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.155838
+      "at": 1793799936.6795373
     },
     {
       "folder": "2. Негативные тесты",
@@ -259,11 +259,11 @@
       "status": 401,
       "expected": 401,
       "passed": true,
-      "ms": 4.9,
+      "ms": 21.0,
       "response": {
         "detail": "Требуется токен"
       },
-      "at": 1793774980.1608682
+      "at": 1793799936.7010467
     },
     {
       "folder": "2. Негативные тесты",
@@ -275,11 +275,11 @@
       "status": 401,
       "expected": 401,
       "passed": true,
-      "ms": 20.7,
+      "ms": 21.8,
       "response": {
         "detail": "Недействительный токен"
       },
-      "at": 1793774980.1814551
+      "at": 1793799936.7212737
     },
     {
       "folder": "2. Негативные тесты",
@@ -288,14 +288,14 @@
       "url": "{{baseUrl}}/api/v1/admin/users",
       "auth": true,
       "body": {
-        "username": "root_1793774980",
+        "username": "root_1793799936",
         "password": "Root#20260",
         "role": "SUPERUSER"
       },
       "status": 422,
       "expected": 422,
       "passed": true,
-      "ms": 20.4,
+      "ms": 36.2,
       "response": {
         "detail": [
           {
@@ -312,7 +312,7 @@
           }
         ]
       },
-      "at": 1793774980.201414
+      "at": 1793799936.760303
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -321,18 +321,18 @@
       "url": "{{baseUrl}}/api/v1/auth/login",
       "auth": false,
       "body": {
-        "username": "employee_1793774979",
+        "username": "employee_1793799935",
         "password": "Employee#2026"
       },
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 277.6,
+      "ms": 471.0,
       "response": {
-        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0IiwibmFtZSI6ImVtcGxveWVlXzE3OTM3NzQ5NzkiLCJpYXQiOjE3OTM3NzQ5ODAsImV4cCI6MTc5Mzc3NTg4MH0.5uAzn8-e6iTbQHBia2r5XfDnldiJVgk2mV-Lc-SCPRM",
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0IiwibmFtZSI6ImVtcGxveWVlXzE3OTM3OTk5MzUiLCJpYXQiOjE3OTM3OTk5MzcsImV4cCI6MTc5MzgwMDgzN30.lFdF9bsvzQsGr1diofnOr6bScx6_ukP6YmuTJ7D7Ess",
         "token_type": "bearer"
       },
-      "at": 1793774980.47943
+      "at": 1793799937.2308884
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -344,11 +344,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 20.0,
+      "ms": 14.7,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.4998214
+      "at": 1793799937.2425964
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -362,12 +362,12 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 39.3,
+      "ms": 41.9,
       "response": {
         "id": 4,
         "role": "MODERATOR"
       },
-      "at": 1793774980.538516
+      "at": 1793799937.2899625
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -379,14 +379,14 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 26.7,
+      "ms": 26.8,
       "response": {
         "events": [
           "login admin",
           "login moder"
         ]
       },
-      "at": 1793774980.564955
+      "at": 1793799937.3119688
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -400,12 +400,12 @@
       "status": 200,
       "expected": 200,
       "passed": true,
-      "ms": 15.0,
+      "ms": 54.1,
       "response": {
         "id": 4,
         "role": "USER"
       },
-      "at": 1793774980.5799718
+      "at": 1793799937.3691053
     },
     {
       "folder": "3. Смена роли «на лету»",
@@ -417,11 +417,11 @@
       "status": 403,
       "expected": 403,
       "passed": true,
-      "ms": 31.5,
+      "ms": 26.0,
       "response": {
         "detail": "Недостаточно прав для выполнения операции"
       },
-      "at": 1793774980.6124072
+      "at": 1793799937.394036
     }
   ]
 }
