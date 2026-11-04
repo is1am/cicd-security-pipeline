@@ -86,6 +86,23 @@ def create_user(conn, username, password, role):
     return uid
 
 
+def list_users(conn):
+    rows = conn.execute(
+        "SELECT u.id, u.username, u.is_active, COALESCE(GROUP_CONCAT(r.name), '') AS roles "
+        "FROM users u LEFT JOIN user_roles ur ON ur.user_id = u.id "
+        "LEFT JOIN roles r ON r.id = ur.role_id GROUP BY u.id ORDER BY u.id").fetchall()
+    return [dict(r) for r in rows]
+
+
+def set_role(conn, user_id, role):
+    """Заменяет роли пользователя одной ролью; False — если пользователя нет."""
+    if not conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+        return False
+    conn.execute("DELETE FROM user_roles WHERE user_id = ?", (user_id,))
+    conn.execute("INSERT INTO user_roles SELECT ?, id FROM roles WHERE name = ?", (user_id, role))
+    return True
+
+
 def get_permissions(conn, user_id):
     rows = conn.execute(
         "SELECT DISTINCT p.name FROM permissions p "

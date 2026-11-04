@@ -6,6 +6,7 @@ import html
 import json
 import pathlib
 import re
+import sys
 import subprocess
 import tempfile
 
@@ -184,7 +185,7 @@ def pipeline():
           width=1300)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--rbac" not in sys.argv:
     pipeline()
     terminal("pytest_before", "Тесты RBAC на исходной версии (этап test)",
              trim_pytest(step("before", "Tests · pytest")))
@@ -199,3 +200,117 @@ if __name__ == "__main__":
              trim_bandit(step("after", "SAST · Bandit (вывод)")) + "\n\n$ "
              + step("after", "SCA · pip-audit (вывод)"))
     gate("after")
+
+
+# ---------------------------------------------------------------- RBAC (ПР5)
+def er_diagram():
+    def entity(x, y, name, cols, w=230):
+        h = 34 + 26 * len(cols)
+        out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="#2b2d31" stroke="#7cc4ff"/>',
+               f'<rect x="{x}" y="{y}" width="{w}" height="34" rx="6" fill="#1f4e79"/>',
+               f'<text x="{x + w / 2}" y="{y + 23}" text-anchor="middle" class="t">{name}</text>']
+        for i, (key, col, typ) in enumerate(cols):
+            cy = y + 34 + 26 * i + 18
+            color = "#ffd166" if key == "PK" else "#c792ea" if key == "FK" else "#9aa0a6"
+            out.append(f'<text x="{x + 10}" y="{cy}" class="k" fill="{color}">{key}</text>')
+            out.append(f'<text x="{x + 46}" y="{cy}" class="c">{col}</text>')
+            out.append(f'<text x="{x + w - 10}" y="{cy}" text-anchor="end" class="ty">{typ}</text>')
+        return "".join(out)
+
+    def link(x1, y1, x2, y2, label):
+        # «один» со стороны справочника, «много» (вилка) со стороны таблицы связи
+        mx = (x1 + x2) / 2
+        d = 1 if x2 > x1 else -1
+        return (f'<path d="M{x1},{y1} H{mx} V{y2} H{x2}" fill="none" stroke="#aaa" stroke-width="1.6"/>'
+                f'<line x1="{x1 + 8 * d}" y1="{y1 - 8}" x2="{x1 + 8 * d}" y2="{y1 + 8}" stroke="#aaa" stroke-width="1.6"/>'
+                f'<line x1="{x2}" y1="{y2}" x2="{x2 - 12 * d}" y2="{y2 - 8}" stroke="#aaa" stroke-width="1.6"/>'
+                f'<line x1="{x2}" y1="{y2}" x2="{x2 - 12 * d}" y2="{y2 + 8}" stroke="#aaa" stroke-width="1.6"/>'
+                f'<text x="{mx - 10}" y="{max(y1, y2) + 18}" class="l">{label}</text>')
+
+    users = [("PK", "id", "SERIAL"), ("", "username", "VARCHAR(50) UQ"),
+             ("", "password_hash", "VARCHAR(255)"), ("", "is_active", "BOOLEAN")]
+    ur = [("PK FK", "user_id", "INTEGER"), ("PK FK", "role_id", "INTEGER")]
+    roles = [("PK", "id", "SERIAL"), ("", "name", "VARCHAR(50) UQ"), ("", "description", "TEXT")]
+    rp = [("PK FK", "role_id", "INTEGER"), ("PK FK", "permission_id", "INTEGER")]
+    perms = [("PK", "id", "SERIAL"), ("", "name", "VARCHAR(50) UQ"),
+             ("", "resource", "VARCHAR(50)"), ("", "action", "VARCHAR(20)")]
+    ur = [(k.replace("PK FK", "FK"), c, t) for k, c, t in ur]
+    rp = [(k.replace("PK FK", "FK"), c, t) for k, c, t in rp]
+    def row(y, i):  # вертикальный центр i-й строки сущности, начинающейся с y
+        return y + 34 + 26 * i + 13
+
+    Y = 90
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1390" height="330" style="background:#1e1f22">'
+        '<style>.t{font:700 15px Segoe UI;fill:#fff}.c{font:14px Consolas;fill:#e6e6e6}'
+        '.k{font:700 12px Consolas}.ty{font:12px Consolas;fill:#8a8f98}'
+        '.l{font:12px Segoe UI;fill:#aaa}.n{font:12px Segoe UI;fill:#9aa0a6}</style>'
+        + entity(20, Y, "users", users, 270)
+        + entity(340, Y + 26, "user_roles", ur, 190)
+        + entity(580, Y, "roles", roles, 230)
+        + entity(860, Y + 26, "role_permissions", rp, 210)
+        + entity(1120, Y, "permissions", perms, 250)
+        + link(290, row(Y, 0), 340, row(Y + 26, 0), "1:N")
+        + link(580, row(Y, 0), 530, row(Y + 26, 1), "1:N")
+        + link(810, row(Y, 0), 860, row(Y + 26, 0), "1:N")
+        + link(1120, row(Y, 0), 1070, row(Y + 26, 1), "1:N")
+        + '<text x="20" y="290" class="n">PK — первичный ключ, FK — внешний ключ (ON DELETE CASCADE ON UPDATE CASCADE), '
+          'UQ — уникальное значение. Первичные ключи таблиц связи составные: (user_id, role_id) и (role_id, permission_id).</text>'
+        '<text x="20" y="312" class="n">Связи users ↔ roles и roles ↔ permissions — многие-ко-многим через таблицы user_roles и role_permissions.</text>'
+        "</svg>")
+    shoot("er_rbac", page("ER-диаграмма базы данных RBAC", svg), width=1440)
+
+
+def api_cards(name, title, pick):
+    data = json.loads((ROOT / "reports" / "api" / "results.json").read_text(encoding="utf-8"))
+    css = """
+    .card{background:#2b2d31;border:1px solid #3c3f45;border-radius:8px;margin-bottom:14px;overflow:hidden}
+    .top{display:flex;gap:10px;align-items:center;padding:9px 14px;background:#25272b;border-bottom:1px solid #3c3f45}
+    .m{font:700 14px Consolas}.GET{color:#6bdd9a}.POST{color:#ffb454}.PUT{color:#7cc4ff}
+    .url{font:14px Consolas;color:#e6e6e6;flex:1}.nm{padding:8px 14px 0;color:#9aa0a6;font-size:13px}
+    .sec{padding:4px 14px 8px;font:13px Consolas;white-space:pre-wrap;word-break:break-all;color:#ccc}
+    .lbl{color:#8a8f98;font:12px Segoe UI;text-transform:uppercase;letter-spacing:.5px}
+    .st{padding:3px 10px;border-radius:4px;font:700 13px Consolas}
+    .s2{background:#1f5135;color:#7bd88f}.s4{background:#5c2526;color:#ff8a8a}
+    .ok{color:#7bd88f;font:700 13px Segoe UI}.ms{color:#8a8f98;font:12px Consolas}
+    """
+    cards = []
+    for r in data["results"]:
+        if not pick(r):
+            continue
+        st_cls = "s2" if r["status"] < 300 else "s4"
+        resp = r["response"]
+        if isinstance(resp, dict) and "access_token" in resp:
+            resp = {**resp, "access_token": resp["access_token"][:42] + "…"}
+        body = (f'<div class="sec"><span class="lbl">Тело запроса</span>\n'
+                f'{html.escape(json.dumps(r["body"], ensure_ascii=False, indent=2))}</div>' if r["body"] else "")
+        auth = "Authorization: Bearer {{token}}" if r["auth"] else "без заголовка Authorization"
+        cards.append(
+            f'<div class="card"><div class="top"><span class="m {r["method"]}">{r["method"]}</span>'
+            f'<span class="url">{html.escape(r["url"])}</span>'
+            f'<span class="st {st_cls}">{r["status"]}</span><span class="ms">{r["ms"]} мс</span>'
+            f'<span class="ok">{"✔ тест пройден" if r["passed"] else "✘ тест не пройден"}</span></div>'
+            f'<div class="nm">{html.escape(r["name"])} · {html.escape(auth)} · ожидался {r["expected"]}</div>'
+            f'{body}<div class="sec"><span class="lbl">Ответ</span>\n'
+            f'{html.escape(json.dumps(resp, ensure_ascii=False, indent=2))}</div></div>')
+    shoot(name, page(title, f"<style>{css}</style>" + "".join(cards)))
+
+
+def rbac_screens():
+    er_diagram()
+    api_cards("api_t1", "Тест 1 (позитивный): ADMIN создаёт пользователя",
+              lambda r: r["name"].startswith(("Вход ADMIN", "Т1.")))
+    api_cards("api_t2", "Тест 2 (негативный): USER обращается к /api/v1/admin/users",
+              lambda r: r["name"].startswith("Т2."))
+    api_cards("api_neg", "Дополнительные негативные тесты: эскалация привилегий и подделка токена",
+              lambda r: r["name"].startswith(("MODERATOR создаёт", "MODERATOR →", "Без токена",
+                                              "Поддельный", "ADMIN: несуществующая")))
+    api_cards("api_t3", "Тест 3: изменение роли «на лету» без перевыпуска токена",
+              lambda r: r["name"].startswith("Т3."))
+    log = (ROOT / "reports" / "api" / "console.log").read_text(encoding="utf-8")
+    terminal("api_run", "Выполнение Postman-коллекции против запущенного сервиса",
+             "python scripts/run_collection.py\n" + log)
+
+
+if __name__ == "__main__" and "--rbac" in sys.argv:
+    rbac_screens()

@@ -5,10 +5,12 @@
 import csv
 import io
 import os
+import sqlite3
+from typing import Literal
 
 import yaml
 from fastapi import Depends, FastAPI, Header, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app import db
 from app.security import create_token, decode_token, verify_password
@@ -22,10 +24,17 @@ class LoginIn(BaseModel):
     password: str
 
 
+Role = Literal["USER", "MODERATOR", "ADMIN"]  # неизвестная роль -> 422
+
+
 class UserIn(BaseModel):
-    username: str
-    password: str
-    role: str = "USER"
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=8)
+    role: Role = "USER"
+
+
+class RoleIn(BaseModel):
+    role: Role
 
 
 def get_current_user(authorization: str = Header(default="")):
@@ -35,6 +44,11 @@ def get_current_user(authorization: str = Header(default="")):
         claims = decode_token(authorization[7:])
     except Exception:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Недействительный токен")
+    with db.connect() as conn:
+        row = conn.execute("SELECT is_active FROM users WHERE id = ?",
+                           (int(claims["sub"]),)).fetchone()
+    if not row or not row["is_active"]:  # удалённый или заблокированный пользователь
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Учётная запись неактивна")
     return {"id": int(claims["sub"]), "username": claims["name"]}
 
 
@@ -85,11 +99,28 @@ def audit_export(user=Depends(require_permission("EXPORT_AUDIT"))):
     return {"result": buf.getvalue()}
 
 
+@app.get("/api/v1/admin/users")
+def list_users(user=Depends(require_permission("MANAGE_USERS"))):
+    with db.connect() as conn:
+        return db.list_users(conn)
+
+
 @app.post("/api/v1/admin/users", status_code=201)
 def create_user(body: UserIn, user=Depends(require_permission("MANAGE_USERS"))):
-    with db.connect() as conn:
-        uid = db.create_user(conn, body.username, body.password, body.role)
+    try:
+        with db.connect() as conn:
+            uid = db.create_user(conn, body.username, body.password, body.role)
+    except sqlite3.IntegrityError:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Пользователь уже существует")
     return {"id": uid, "username": body.username, "role": body.role}
+
+
+@app.put("/api/v1/admin/users/{user_id}/role")
+def change_role(user_id: int, body: RoleIn, user=Depends(require_permission("MANAGE_USERS"))):
+    with db.connect() as conn:
+        if not db.set_role(conn, user_id, body.role):
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Пользователь не найден")
+    return {"id": user_id, "role": body.role}
 
 
 @app.post("/api/v1/admin/import")

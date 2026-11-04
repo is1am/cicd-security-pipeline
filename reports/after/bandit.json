@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2026-11-02T14:31:12Z",
+  "generated_at": "2026-11-04T06:51:47Z",
   "metrics": {
     "_totals": {
       "CONFIDENCE.HIGH": 0,
@@ -11,7 +11,7 @@
       "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 179,
+      "loc": 215,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -37,7 +37,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 80,
+      "loc": 93,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -50,7 +50,7 @@
       "SEVERITY.LOW": 1,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 71,
+      "loc": 94,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -70,7 +70,7 @@
   },
   "results": [
     {
-      "code": "57         raise HTTPException(status.HTTP_401_UNAUTHORIZED, \"\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u043b\u043e\u0433\u0438\u043d \u0438\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c\")\n58     return {\"access_token\": create_token(row[\"id\"], row[\"username\"]), \"token_type\": \"bearer\"}\n59 \n",
+      "code": "71         raise HTTPException(status.HTTP_401_UNAUTHORIZED, \"\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u043b\u043e\u0433\u0438\u043d \u0438\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c\")\n72     return {\"access_token\": create_token(row[\"id\"], row[\"username\"]), \"token_type\": \"bearer\"}\n73 \n",
       "col_offset": 70,
       "end_col_offset": 82,
       "filename": "app\\main.py",
@@ -81,9 +81,9 @@
       },
       "issue_severity": "LOW",
       "issue_text": "Possible hardcoded password: 'bearer'",
-      "line_number": 58,
+      "line_number": 72,
       "line_range": [
-        58
+        72
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html",
       "test_id": "B105",

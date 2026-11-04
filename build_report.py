@@ -243,6 +243,7 @@ def snippet(text, start, end):
     return "\n".join(lines[i:j])
 
 
+api = json.loads((ROOT / "reports/api/results.json").read_text(encoding="utf-8"))
 before = json.loads((ROOT / "reports/before/gate.json").read_text(encoding="utf-8"))
 after = json.loads((ROOT / "reports/after/gate.json").read_text(encoding="utf-8"))
 
@@ -254,8 +255,8 @@ def count(data, tool, blocking=None):
 
 BASE = subprocess.run(["git", "rev-list", "--max-parents=0", "HEAD"], cwd=ROOT,
                       capture_output=True, text=True, check=True).stdout.strip()
-FIX = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True,
-                     check=True).stdout.strip()
+FIX = subprocess.run(["git", "log", "--format=%H", "--grep=Исправление уязвимостей"], cwd=ROOT,
+                     capture_output=True, text=True, encoding="utf-8", check=True).stdout.split()[-1]
 old_main, old_sec = git_show(BASE, "app/main.py"), git_show(BASE, "app/security.py")
 old_req = git_show(BASE, "requirements.txt")
 
@@ -263,8 +264,9 @@ old_req = git_show(BASE, "requirements.txt")
 C = WD_ALIGN_PARAGRAPH.CENTER
 para("МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ КАЗАХСТАН", bold=True, align=C, indent=False)
 para("«НАО Евразийский национальный университет имени Л. Н. Гумилёва»", align=C, indent=False)
+para("Факультет информационных технологий", align=C, indent=False)
 para("Кафедра Информационная безопасность", align=C, indent=False)
-for _ in range(5):
+for _ in range(4):
     para(indent=False)
 para("ОТЧЕТ", bold=True, align=C, indent=False, size=18)
 para("по практической работе № 5", bold=True, align=C, indent=False)
@@ -279,7 +281,7 @@ R = WD_ALIGN_PARAGRAPH.RIGHT
 para("Руководитель, преподаватель _____________ Казиева Н.М.", align=R, indent=False)
 para("«___» __________________ 2026", align=R, indent=False)
 para(indent=False)
-para("Выполнил студент группы СИБ-24", align=R, indent=False)
+para("Выполнил магистрант группы МСИБ-24", align=R, indent=False)
 para("Нуртазинов Ислам Тулегенович", align=R, indent=False)
 para("«___» __________________ 2026", align=R, indent=False)
 for _ in range(4):
@@ -296,7 +298,8 @@ rich([("b", "Практическая: "),
 rich([("b", "Теоретическая: "),
       "изучить подход DevSecOps и принцип «shift-left», классы уязвимостей, которые находят "
       "SAST и SCA, форматы обмена результатами (SARIF, отчёты GitLab) и ограничения "
-      "автоматических сканеров."])
+      "автоматических сканеров; принципы проектирования ролевой модели доступа RBAC "
+      "(NIST RBAC, принцип наименьших привилегий) и методы её негативного тестирования."])
 
 # --- 2. Задание ------------------------------------------------------------
 heading("2. Задание")
@@ -316,6 +319,15 @@ bullets([
     "с политикой блокировки;",
     "выполнить сканирование, проанализировать находки, устранить уязвимости "
     "и показать, что после исправления пайплайн проходит.",
+])
+para("Дополнительно выполнены обязательные шаги методических указаний ПР5:")
+bullets([
+    "шаг 1 — SQL-скрипт таблиц users, roles, permissions, user_roles, role_permissions "
+    "с FOREIGN KEY и ON DELETE CASCADE, ER-диаграмма;",
+    "шаг 2 — middleware проверки разрешений и три уровня ресурсов: /api/v1/public, "
+    "/api/v1/moderator/audit, /api/v1/admin/users;",
+    "шаг 3 — позитивные и негативные тесты в Postman (200/201, 403), а также проверка "
+    "смены роли «на лету» без перевыпуска токена.",
 ])
 
 # --- 3. Теория -------------------------------------------------------------
@@ -377,6 +389,28 @@ table(["Подход", "Что анализирует", "Когда", "Прим�
         "ошибки конфигурации, XSS, IDOR", "OWASP ZAP, Burp"]],
       [2.0, 3.6, 2.9, 4.4, 3.6], "Сравнение видов автоматического тестирования безопасности")
 
+heading("3.5. Ролевая модель доступа RBAC", 2)
+para("RBAC (Role-Based Access Control) — модель, в которой права (permissions) выдаются не "
+     "пользователям напрямую, а ролям, а пользователь получает права через назначенные ему "
+     "роли. Стандарт NIST RBAC (ANSI INCITS 359) выделяет четыре уровня модели.")
+table(["Уровень NIST RBAC", "Содержание", "Реализация в работе"],
+      [["Core (базовый)", "пользователи, роли, права, сеансы; связи многие-ко-многим",
+        "таблицы users, roles, permissions, user_roles, role_permissions"],
+       ["Hierarchical", "иерархия ролей: старшая роль наследует права младшей",
+        "задана составом прав: ADMIN ⊃ MODERATOR ⊃ USER"],
+       ["Constrained (SSD/DSD)", "разделение обязанностей: несовместимые роли",
+        "не требуется заданием; set_role назначает одну роль"],
+       ["Symmetric", "обзор прав: какие роли и пользователи имеют право X",
+        "запрос GET /api/v1/admin/users и SQL-запрос прав пользователя"]],
+      [3.6, 6.0, 6.9], "Уровни модели NIST RBAC")
+para("Принцип наименьших привилегий (PoLP) требует давать каждой роли только права, "
+     "необходимые для её задач, и запрещать всё, что явно не разрешено (deny by default). "
+     "Проверка выполняется на сервере для каждого запроса: скрытие кнопок в интерфейсе "
+     "защитой не является. Типичные ошибки — эндпоинт без проверки права (Broken Function "
+     "Level Authorization, эскалация привилегий), доступ к чужому объекту по идентификатору "
+     "(IDOR / BOLA) и возможность самому назначить себе роль через тело запроса "
+     "(Mass Assignment).")
+
 # --- 4. Среда --------------------------------------------------------------
 heading("4. Среда выполнения и инструменты")
 table(["Компонент", "Версия / значение"],
@@ -384,7 +418,9 @@ table(["Компонент", "Версия / значение"],
        ["Python (локально / в CI)", "3.10.7 / 3.12"],
        ["FastAPI · PyJWT · PyYAML (после исправления)",
         f"{version('fastapi')} · {version('pyjwt')} · {version('pyyaml')}"],
-       ["pytest", version("pytest")],
+       ["pytest · requests (клиент API-тестов)", f"{version('pytest')} · {version('requests')}"],
+       ["Postman", "коллекция и окружение в формате Postman Collection v2.1"],
+       ["СУБД", "SQLite (демонстрационный стенд); SQL-скрипт для PostgreSQL"],
        ["Bandit", version("bandit")],
        ["Semgrep", version("semgrep")],
        ["pip-audit", version("pip-audit")],
@@ -396,7 +432,10 @@ table(["Компонент", "Версия / значение"],
 
 table(["Путь", "Назначение"],
       [["app/main.py, app/security.py, app/db.py", "RBAC-сервис на FastAPI (объект проверки)"],
-       ["tests/test_rbac.py", "функциональные и негативные тесты RBAC"],
+       ["tests/test_rbac.py", "функциональные и негативные тесты RBAC (pytest)"],
+       ["sql/rbac_schema.sql", "SQL-скрипт схемы RBAC для PostgreSQL с начальными данными"],
+       ["postman/*.json", "Postman-коллекция (21 запрос) и окружение"],
+       ["scripts/run_collection.py", "запуск сервиса и выполнение Postman-коллекции"],
        [".github/workflows/security.yml", "пайплайн GitHub Actions"],
        [".github/dependabot.yml", "автоматические PR с обновлением зависимостей"],
        [".gitlab-ci.yml", "пайплайн GitLab CI"],
@@ -410,17 +449,51 @@ table(["Путь", "Назначение"],
 
 # --- 5. Объект проверки ----------------------------------------------------
 heading("5. Объект проверки: RBAC-сервис")
+heading("5.1. Модель данных", 2)
 para("Сервис реализует классическую модель RBAC из методических указаний: права "
-     "(permissions) назначаются ролям, роли — пользователям, а каждый эндпоинт защищён "
-     "зависимостью FastAPI require_permission(...), которая возвращает 403 Forbidden при "
-     "отсутствии права. Схема БД создаётся с внешними ключами и ON DELETE CASCADE.")
+     "(permissions) назначаются ролям, роли — пользователям. Связи многие-ко-многим "
+     "реализованы таблицами user_roles и role_permissions с составными первичными ключами. "
+     "Внешние ключи объявлены с ON DELETE CASCADE и ON UPDATE CASCADE: при удалении "
+     "пользователя или роли связи удаляются автоматически, и «висячих» назначений прав "
+     "не остаётся.")
+figure("screenshots/er_rbac.png", "ER-диаграмма базы данных RBAC", 16.5)
+code(src("sql/rbac_schema.sql", "CREATE TABLE users (", "CREATE INDEX idx_role_permissions_perm"))
+para("Листинг 1 — SQL-скрипт создания таблиц (sql/rbac_schema.sql, PostgreSQL)", indent=False,
+     size=12, align=WD_ALIGN_PARAGRAPH.CENTER)
+table(["Роль", "Права"],
+      [["ADMIN", "READ_PUBLIC, VIEW_AUDIT, EXPORT_AUDIT, MANAGE_USERS"],
+       ["MODERATOR", "READ_PUBLIC, VIEW_AUDIT"],
+       ["USER", "READ_PUBLIC"]],
+      [4.0, 12.5], "Матрица «роль — права»")
+
+heading("5.2. Middleware проверки прав", 2)
+para("Проверка реализована зависимостями FastAPI. get_current_user проверяет подпись и срок "
+     "действия JWT и то, что учётная запись существует и активна (is_active). "
+     "Фабрика require_permission(\"ПРАВО\") создаёт зависимость, которая при каждом "
+     "запросе получает права пользователя из БД одним SQL-запросом через user_roles и "
+     "role_permissions и возвращает 403 Forbidden, если нужного права нет. Проверяется "
+     "право, а не имя роли: добавление новой роли не требует правки кода эндпоинтов.")
+code(src("app/main.py", "def get_current_user", "    return dependency"))
+para("Листинг 2 — проверка токена и разрешений (app/main.py)", indent=False, size=12,
+     align=WD_ALIGN_PARAGRAPH.CENTER)
+code(src("app/main.py", '@app.get("/api/v1/admin/users")', '    return {"id": user_id, "role": body.role}'))
+para("Листинг 3 — административные эндпоинты, защищённые правом MANAGE_USERS", indent=False,
+     size=12, align=WD_ALIGN_PARAGRAPH.CENTER)
+para("Роль в теле запроса POST /api/v1/admin/users ограничена типом "
+     "Literal[\"USER\", \"MODERATOR\", \"ADMIN\"]: неизвестное значение отклоняется с кодом "
+     "422 до обращения к БД. Назначать роли может только обладатель MANAGE_USERS, поэтому "
+     "модератор не может создать администратора (защита от Mass Assignment и эскалации).")
+
+heading("5.3. Эндпоинты и намеренные уязвимости", 2)
 table(["Эндпоинт", "Требуемое право", "Роли"],
       [["POST /api/v1/auth/login", "—", "все (выдача JWT)"],
        ["GET /api/v1/public", "READ_PUBLIC", "USER, MODERATOR, ADMIN"],
        ["GET /api/v1/users/search", "READ_PUBLIC", "USER, MODERATOR, ADMIN"],
        ["GET /api/v1/moderator/audit", "VIEW_AUDIT", "MODERATOR, ADMIN"],
        ["GET /api/v1/moderator/audit/export", "EXPORT_AUDIT", "ADMIN"],
+       ["GET /api/v1/admin/users", "MANAGE_USERS", "ADMIN"],
        ["POST /api/v1/admin/users", "MANAGE_USERS", "ADMIN"],
+       ["PUT /api/v1/admin/users/{id}/role", "MANAGE_USERS", "ADMIN"],
        ["POST /api/v1/admin/import", "MANAGE_USERS", "ADMIN"]],
       [7.0, 4.0, 5.5], "Эндпоинты сервиса и права доступа")
 para("В исходную версию (коммит " + BASE[:7] + ") намеренно внесены ошибки, которые часто "
@@ -468,10 +541,10 @@ bullets([
     [("code", "concurrency"), " отменяет устаревшие запуски той же ветки."],
 ])
 code(src(".github/workflows/security.yml", "  sast-semgrep:", "          category: semgrep"))
-para("Листинг 1 — джоба Semgrep в GitHub Actions", indent=False, size=12,
+para("Листинг 4 — джоба Semgrep в GitHub Actions", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 code(src(".github/workflows/security.yml", "  security-gate:", "run: python scripts"))
-para("Листинг 2 — джоба Security Gate в GitHub Actions", indent=False, size=12,
+para("Листинг 5 — джоба Security Gate в GitHub Actions", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 
 heading("6.3. GitLab CI", 2)
@@ -481,10 +554,10 @@ para("Файл .gitlab-ci.yml реализует ту же логику в ст�
      "по шаблону gitlab.tpl; оба публикуются через artifacts:reports и отображаются в "
      "Merge Request. Собственные джобы не требуют тарифа Ultimate.")
 code(src(".gitlab-ci.yml", "sast:semgrep:", "      sast: gl-sast-report.json"))
-para("Листинг 3 — джоба Semgrep в GitLab CI", indent=False, size=12,
+para("Листинг 6 — джоба Semgrep в GitLab CI", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 code(src(".gitlab-ci.yml", "sca:trivy:", "      dependency_scanning:"))
-para("Листинг 4 — джоба Trivy в GitLab CI", indent=False, size=12,
+para("Листинг 7 — джоба Trivy в GitLab CI", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 
 heading("6.4. Собственные правила Semgrep для RBAC", 2)
@@ -498,7 +571,7 @@ para("Стандартные правила не знают, что в прое�
 code("\n".join(src(".semgrep/rbac-rules.yml",
                     "  - id: rbac-privileged-route-without-permission",
                     "  - id: jwt-decode-without-verification").splitlines()[:-2]))
-para("Листинг 5 — правило Semgrep для проверки RBAC-маршрутов", indent=False, size=12,
+para("Листинг 8 — правило Semgrep для проверки RBAC-маршрутов", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 
 heading("6.5. Security Gate и политика", 2)
@@ -509,7 +582,7 @@ para("Скрипт scripts/security_gate.py читает bandit.json, semgrep.js
      "или отсутствует отчёт одного из сканеров (сломанный сканер не должен означать "
      "«уязвимостей нет»). Сводка в Markdown публикуется в GITHUB_STEP_SUMMARY.")
 code((ROOT / "security-policy.json").read_text(encoding="utf-8"))
-para("Листинг 6 — политика security-policy.json", indent=False, size=12,
+para("Листинг 9 — политика security-policy.json", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 para("Исключение допускается только адресно (идентификатор правила + файл), "
      "с обоснованием и сроком действия: по истечении срока находка снова блокирует сборку. "
@@ -591,16 +664,16 @@ table(["Находка", "Инструмент", "Исправление"],
       [4.6, 3.8, 8.1], "Исправления по результатам сканирования")
 code("# Было\n" + snippet(old_sec, "def decode_token", "return jwt.decode") + "\n\n# Стало\n"
      + src("app/security.py", "def decode_token", 'options={"require"'))
-para("Листинг 7 — проверка JWT до и после исправления", indent=False, size=12,
+para("Листинг 10 — проверка JWT до и после исправления", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 code("# Было\n" + snippet(old_main, "        # SQL-инъекция", "fetchall()") + "\n\n# Стало\n"
      + src("app/main.py", "        # параметризованный", "fetchall()"))
-para("Листинг 8 — поиск пользователей до и после исправления", indent=False, size=12,
+para("Листинг 11 — поиск пользователей до и после исправления", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 code("# Было\n" + snippet(old_main, '@app.get("/api/v1/moderator/audit/export")',
                           'return {"result"') + "\n\n# Стало\n"
      + src("app/main.py", '@app.get("/api/v1/moderator/audit/export")', 'return {"result"'))
-para("Листинг 9 — эндпоинт экспорта аудита до и после исправления", indent=False, size=12,
+para("Листинг 12 — эндпоинт экспорта аудита до и после исправления", indent=False, size=12,
      align=WD_ALIGN_PARAGRAPH.CENTER)
 new_req = (ROOT / "requirements.txt").read_text(encoding="utf-8")
 pins = lambda t: dict(ln.split("==") for ln in t.split() if "==" in ln)
@@ -612,14 +685,14 @@ table(["Пакет", "Было", "Стало"], [[k, o[k], n.get(k, "—")] for 
 heading("9. Повторное сканирование")
 para("Команда python scripts/run_local_scans.py after выполнена на исправленной версии, "
      "отчёты сохранены в reports/after.")
-figure("screenshots/pytest_after.png", "pytest после исправлений: 5 из 5 тестов пройдены", 15)
+figure("screenshots/pytest_after.png", "pytest после исправлений: 8 из 8 тестов пройдены", 15)
 figure("screenshots/scans_after.png", "Bandit и pip-audit после исправлений", 15)
 figure("screenshots/gate_after.png", "Security Gate после исправлений: проверка пройдена", 12)
 para("Bandit сообщает только о строке «bearer» уровня LOW — это тип токена OAuth 2.0, "
      "ложное срабатывание, внесённое в исключения политики с обоснованием и сроком. "
      "Semgrep и pip-audit находок не выдали.")
 table(["Показатель", "До", "После"],
-      [["Тесты pytest (пройдено из 5)", "2", "5"],
+      [["Тесты pytest (пройдено)", "2 из 5", "8 из 8 (+3 теста RBAC)"],
        ["Bandit: всего / блокирующих", f"{count(before, 'Bandit')} / {count(before, 'Bandit', True)}",
         f"{count(after, 'Bandit')} / {count(after, 'Bandit', True)}"],
        ["Semgrep: всего / блокирующих",
@@ -663,8 +736,66 @@ para("Второй запуск (run #8, после исправлений) пр
      "«Bump fastapi from 0.141.1 to 0.162.0» — SCA работает и вне пайплайна.")
 figure("screenshots/gh_run_ok.png", "Запуск в GitHub Actions после исправлений (run #8): все проверки пройдены", 16)
 
+heading("10. Тестирование ролевой модели в Postman (Negative Testing)")
+para("Тесты из шага 3 методических указаний оформлены как Postman-коллекция "
+     "postman/RBAC_PR5.postman_collection.json и окружение RBAC_PR5.postman_environment.json "
+     "(переменная baseUrl). Каждый запрос содержит тест pm.test(...) с ожидаемым "
+     "статусом, а токены и идентификатор нового пользователя сохраняются в переменные "
+     "окружения. Для воспроизводимого прогона используется скрипт "
+     "scripts/run_collection.py: он запускает сервис на чистой БД, выполняет все запросы "
+     "коллекции по порядку и проверяет статусы (аналог Newman). Ниже — результаты этого "
+     "прогона; те же запросы выполняются вручную в Postman импортом двух JSON-файлов.")
+figure("screenshots/api_run.png",
+       f"Прогон Postman-коллекции: {api['summary']['passed']} из {api['summary']['total']} проверок пройдено", 15)
+table(["Группа", "Запрос", "Ожидалось", "Получено"],
+      [[r["folder"].split(". ", 1)[1], r["name"], str(r["expected"]), str(r["status"])]
+       for r in api["results"]],
+      [3.8, 7.7, 2.4, 2.6], "Результаты запросов Postman-коллекции")
+
+heading("10.1. Тест 1 (позитивный)", 2)
+para("Администратор входит в систему и создаёт пользователя. Сервер возвращает "
+     "201 Created и идентификатор новой записи.")
+figure("screenshots/api_t1.png", "Тест 1: вход ADMIN и создание пользователя — 201 Created", 15)
+
+heading("10.2. Тест 2 (негативный)", 2)
+para("Рядовой сотрудник (USER) с валидным токеном обращается к /api/v1/admin/users. "
+     "Аутентификация проходит, но у роли USER нет права MANAGE_USERS, и middleware "
+     "возвращает 403 Forbidden и для чтения списка, и для попытки создать администратора.")
+figure("screenshots/api_t2.png", "Тест 2: USER → /api/v1/admin/users — 403 Forbidden", 15)
+para("Дополнительно проверены попытки эскалации привилегий: модератор пытается создать "
+     "пользователя с ролью ADMIN и выгрузить аудит (право EXPORT_AUDIT есть только у "
+     "ADMIN) — 403; запрос без токена и с токеном, подписанным чужим ключом, — 401; "
+     "создание пользователя с несуществующей ролью SUPERUSER — 422.")
+figure("screenshots/api_neg.png", "Дополнительные негативные тесты: 403, 401, 422", 15)
+
+heading("10.3. Тест 3: смена роли «на лету»", 2)
+para("Новый сотрудник получает токен с ролью USER и получает 403 на /api/v1/moderator/audit. "
+     "Затем администратор меняет ему роль на MODERATOR (PUT /api/v1/admin/users/{id}/role, "
+     "т.е. UPDATE таблицы user_roles), и сотрудник повторяет запрос с тем же токеном.")
+figure("screenshots/api_t3.png", "Тест 3: изменение роли без перевыпуска токена", 15)
+para(f"Новая роль применилась на первом же запросе после изменения — через "
+     f"{api['summary']['role_change_delay_ms']} мс, что равно времени одного HTTP-запроса; "
+     "возврат роли USER так же сразу вернул 403. Задержки нет, потому что токен содержит "
+     "только идентификатор пользователя (sub), а права читаются из БД при каждом "
+     "запросе. Для сравнения ниже приведён альтернативный вариант, когда роль хранится "
+     "в claims JWT.")
+table(["Критерий", "Права из БД при каждом запросе (реализовано)", "Роль в claims JWT"],
+      [["Задержка применения новой роли", "0 — следующий запрос",
+        "до истечения exp (15 мин) или до перевыпуска токена"],
+       ["Отзыв прав / блокировка", "сразу (роль или is_active в БД)",
+        "токен действует до exp; нужен blacklist по jti"],
+       ["Нагрузка", "1 SQL-запрос на каждый запрос API (кэш с коротким TTL)",
+        "проверка без обращения к БД"],
+       ["Риск", "нагрузка на БД", "окно, в котором уволенный или пониженный "
+        "сотрудник сохраняет права"]],
+      [4.3, 6.0, 6.2], "Где хранить роли: сравнение подходов")
+para("Для корпоративных систем, где своевременный отзыв прав важнее нескольких "
+     "миллисекунд на запрос, выбран вариант с чтением прав из БД. Если роль всё же "
+     "передаётся в токене, срок жизни access-токена должен быть коротким, а при смене "
+     "роли — инвалидироваться refresh-токен и вестись список отозванных jti.")
+
 # --- 10. GitHub vs GitLab --------------------------------------------------
-heading("10. Сравнение GitHub Actions и GitLab CI")
+heading("11. Сравнение GitHub Actions и GitLab CI")
 table(["Критерий", "GitHub Actions", "GitLab CI"],
       [["Описание пайплайна", ".github/workflows/*.yml, jobs + needs",
         ".gitlab-ci.yml, stages + needs"],
@@ -679,9 +810,12 @@ table(["Критерий", "GitHub Actions", "GitLab CI"],
        ["Блокировка слияния", "branch protection: required status checks",
         "«Pipelines must succeed», approval policies"]],
       [3.8, 6.3, 6.4], "Реализация пайплайна в двух CI-системах")
+para("Пайплайн GitHub Actions проверен реальными запусками в репозитории "
+     "github.com/is1am/cicd-security-pipeline. Конфигурация GitLab CI реализует ту же "
+     "логику на тех же инструментах и командах, но в GitLab в рамках работы не запускалась.")
 
 # --- 11. Выводы ------------------------------------------------------------
-heading("11. Выводы")
+heading("12. Выводы")
 para("1. Построен конвейер безопасности для GitHub Actions и GitLab CI, который при каждом "
      "изменении и еженедельно по расписанию выполняет SAST (Bandit, Semgrep), SCA "
      "(pip-audit, Trivy), поиск секретов (Gitleaks / Secret Detection) и тесты. "
@@ -695,15 +829,28 @@ para("3. Ни один инструмент не нашёл всё в одино
      "подписи JWT и отсутствие проверки права; правила сообщества Semgrep не знают о "
      "require_permission. Комбинация нескольких сканеров и собственных правил, учитывающих "
      "архитектуру проекта, существенно повышает полноту анализа.")
-para("4. Для RBAC-систем особенно важно собственное правило SAST, проверяющее, что каждый "
+para("4. Ролевая модель спроектирована по NIST RBAC (Core и иерархия через состав прав): "
+     "права назначаются ролям, роли — пользователям, проверка выполняется на сервере по "
+     "праву, а не по имени роли, и по умолчанию запрещено всё, что не разрешено явно. "
+     f"Postman-тесты ({api['summary']['passed']} из {api['summary']['total']} пройдено) "
+     "подтвердили: USER получает 403 на административных ресурсах, модератор не может "
+     "создать администратора и выгрузить аудит, поддельный токен отклоняется с 401, "
+     "а неизвестная роль — с 422.")
+para("5. Правильно спроектированный RBAC предотвращает эскалацию привилегий, потому что "
+     "у пользователя нет пути получить право, не выданное его роли: назначать роли может "
+     "только обладатель MANAGE_USERS, роль в запросе ограничена белым списком, а права "
+     "читаются из БД при каждом запросе. Поэтому понижение роли или блокировка учётной "
+     "записи действуют сразу (тест 3 — без задержки), и у скомпрометированной или "
+     "уволенной учётной записи не остаётся окна, в котором старые права ещё работают.")
+para("6. Для RBAC-систем особенно важно собственное правило SAST, проверяющее, что каждый "
      "привилегированный маршрут защищён проверкой права. Оно превращает ошибку контроля "
      "доступа (эскалацию привилегий) из находки пентеста в автоматическую проверку каждого "
      "pull request. Негативные тесты (403 для USER, 401 для поддельного токена) дополняют "
      "SAST, подтверждая поведение на работающем приложении.")
-para("5. SCA должен анализировать полное дерево зависимостей и запускаться по расписанию: "
+para("7. SCA должен анализировать полное дерево зависимостей и запускаться по расписанию: "
      "уязвимости появляются в библиотеках без изменения кода проекта. Автоматические PR "
      "Dependabot сокращают время от публикации CVE до обновления.")
-para("6. Эффективность пайплайна определяют не только сканеры, но и процесс: обязательный "
+para("8. Эффективность пайплайна определяют не только сканеры, но и процесс: обязательный "
      "статус в branch protection, минимальные права токена CI, зафиксированные версии "
      "инструментов, блокировка при отсутствии отчёта и исключения только с обоснованием "
      "и сроком действия.")

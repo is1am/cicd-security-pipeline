@@ -50,3 +50,28 @@ def test_sql_injection_does_not_leak_users():
                    headers=token("user", "User#2026"))
     assert r.status_code == 200
     assert r.json() == []
+
+
+def test_moderator_cannot_escalate_to_admin():
+    r = client.post("/api/v1/admin/users", headers=token("moder", "Moder#2026"),
+                    json={"username": "evil_admin", "password": "Evil#2026", "role": "ADMIN"})
+    assert r.status_code == 403
+
+
+def test_unknown_role_rejected():
+    r = client.post("/api/v1/admin/users", headers=token("admin", "Admin#2026"),
+                    json={"username": "root2", "password": "Root#2026", "role": "SUPERUSER"})
+    assert r.status_code == 422
+
+
+def test_role_change_applies_without_new_token():
+    client.post("/api/v1/admin/users", headers=token("admin", "Admin#2026"),
+                json={"username": "promo", "password": "Promo#2026", "role": "USER"})
+    promo = token("promo", "Promo#2026")
+    assert client.get("/api/v1/moderator/audit", headers=promo).status_code == 403
+    users = client.get("/api/v1/admin/users", headers=token("admin", "Admin#2026")).json()
+    uid = next(u["id"] for u in users if u["username"] == "promo")
+    r = client.put(f"/api/v1/admin/users/{uid}/role", headers=token("admin", "Admin#2026"),
+                   json={"role": "MODERATOR"})
+    assert r.status_code == 200
+    assert client.get("/api/v1/moderator/audit", headers=promo).status_code == 200

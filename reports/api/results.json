@@ -1,0 +1,427 @@
+{
+  "summary": {
+    "total": 21,
+    "passed": 21,
+    "role_change_delay_ms": 26.4
+  },
+  "results": [
+    {
+      "folder": "0. Аутентификация",
+      "name": "Вход ADMIN",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "auth": false,
+      "body": {
+        "username": "admin",
+        "password": "Admin#2026"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 338.6,
+      "response": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6ImFkbWluIiwiaWF0IjoxNzkzNzc0OTc5LCJleHAiOjE3OTM3NzU4Nzl9.V81pacuCnIzNY1RFxivz5Ww4PCDs2oCzRGzkWi7Nlgk",
+        "token_type": "bearer"
+      },
+      "at": 1793774979.1778946
+    },
+    {
+      "folder": "0. Аутентификация",
+      "name": "Вход MODERATOR",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "auth": false,
+      "body": {
+        "username": "moder",
+        "password": "Moder#2026"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 252.2,
+      "response": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwibmFtZSI6Im1vZGVyIiwiaWF0IjoxNzkzNzc0OTc5LCJleHAiOjE3OTM3NzU4Nzl9.ewq7c1zQ8Q7UJXmilpXPIBVi9_pe2hpI1aI1R1gcbLs",
+        "token_type": "bearer"
+      },
+      "at": 1793774979.430509
+    },
+    {
+      "folder": "0. Аутентификация",
+      "name": "Вход USER",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "auth": false,
+      "body": {
+        "username": "user",
+        "password": "User#2026"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 262.9,
+      "response": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwibmFtZSI6InVzZXIiLCJpYXQiOjE3OTM3NzQ5NzksImV4cCI6MTc5Mzc3NTg3OX0.T2E0AhWPBDI1vOWto3aYR3ZWTMYV9-gvlowR2tS0HoQ",
+        "token_type": "bearer"
+      },
+      "at": 1793774979.693301
+    },
+    {
+      "folder": "1. Позитивные тесты",
+      "name": "Т1. ADMIN создаёт пользователя",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": {
+        "username": "employee_1793774979",
+        "password": "Employee#2026",
+        "role": "USER"
+      },
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "ms": 287.3,
+      "response": {
+        "id": 4,
+        "username": "employee_1793774979",
+        "role": "USER"
+      },
+      "at": 1793774979.9801311
+    },
+    {
+      "folder": "1. Позитивные тесты",
+      "name": "ADMIN: список пользователей",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": null,
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 21.1,
+      "response": [
+        {
+          "id": 1,
+          "username": "admin",
+          "is_active": 1,
+          "roles": "ADMIN"
+        },
+        {
+          "id": 2,
+          "username": "moder",
+          "is_active": 1,
+          "roles": "MODERATOR"
+        },
+        {
+          "id": 3,
+          "username": "user",
+          "is_active": 1,
+          "roles": "USER"
+        },
+        {
+          "id": 4,
+          "username": "employee_1793774979",
+          "is_active": 1,
+          "roles": "USER"
+        }
+      ],
+      "at": 1793774980.0012207
+    },
+    {
+      "folder": "1. Позитивные тесты",
+      "name": "MODERATOR: журнал аудита",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit",
+      "auth": true,
+      "body": null,
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 30.5,
+      "response": {
+        "events": [
+          "login admin",
+          "login moder"
+        ]
+      },
+      "at": 1793774980.0322707
+    },
+    {
+      "folder": "1. Позитивные тесты",
+      "name": "USER: общий ресурс",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/public",
+      "auth": true,
+      "body": null,
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 29.4,
+      "response": {
+        "message": "Привет, user"
+      },
+      "at": 1793774980.0610049
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "Т2. USER → /admin/users (GET)",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": null,
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 8.1,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.069785
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "Т2. USER → /admin/users (POST)",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": {
+        "username": "hacker",
+        "password": "Hacker#2026",
+        "role": "ADMIN"
+      },
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 23.2,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.0933642
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "USER → журнал аудита",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit",
+      "auth": true,
+      "body": null,
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 29.5,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.1218307
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "MODERATOR создаёт ADMIN (эскалация)",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": {
+        "username": "moder_admin",
+        "password": "Moder#2026x",
+        "role": "ADMIN"
+      },
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 8.7,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.1316972
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "MODERATOR → экспорт аудита",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit/export",
+      "auth": true,
+      "body": null,
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 24.1,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.155838
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "Без токена",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/public",
+      "auth": false,
+      "body": null,
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "ms": 4.9,
+      "response": {
+        "detail": "Требуется токен"
+      },
+      "at": 1793774980.1608682
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "Поддельный токен (чужой ключ)",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": null,
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "ms": 20.7,
+      "response": {
+        "detail": "Недействительный токен"
+      },
+      "at": 1793774980.1814551
+    },
+    {
+      "folder": "2. Негативные тесты",
+      "name": "ADMIN: несуществующая роль",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/admin/users",
+      "auth": true,
+      "body": {
+        "username": "root_1793774980",
+        "password": "Root#20260",
+        "role": "SUPERUSER"
+      },
+      "status": 422,
+      "expected": 422,
+      "passed": true,
+      "ms": 20.4,
+      "response": {
+        "detail": [
+          {
+            "type": "literal_error",
+            "loc": [
+              "body",
+              "role"
+            ],
+            "msg": "Input should be 'USER', 'MODERATOR' or 'ADMIN'",
+            "input": "SUPERUSER",
+            "ctx": {
+              "expected": "'USER', 'MODERATOR' or 'ADMIN'"
+            }
+          }
+        ]
+      },
+      "at": 1793774980.201414
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Вход нового сотрудника",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "auth": false,
+      "body": {
+        "username": "employee_1793774979",
+        "password": "Employee#2026"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 277.6,
+      "response": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0IiwibmFtZSI6ImVtcGxveWVlXzE3OTM3NzQ5NzkiLCJpYXQiOjE3OTM3NzQ5ODAsImV4cCI6MTc5Mzc3NTg4MH0.5uAzn8-e6iTbQHBia2r5XfDnldiJVgk2mV-Lc-SCPRM",
+        "token_type": "bearer"
+      },
+      "at": 1793774980.47943
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Т3.1 USER → аудит (до смены роли)",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit",
+      "auth": true,
+      "body": null,
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 20.0,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.4998214
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Т3.2 ADMIN меняет роль на MODERATOR",
+      "method": "PUT",
+      "url": "{{baseUrl}}/api/v1/admin/users/4/role",
+      "auth": true,
+      "body": {
+        "role": "MODERATOR"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 39.3,
+      "response": {
+        "id": 4,
+        "role": "MODERATOR"
+      },
+      "at": 1793774980.538516
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Т3.3 тот же токен → аудит",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit",
+      "auth": true,
+      "body": null,
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 26.7,
+      "response": {
+        "events": [
+          "login admin",
+          "login moder"
+        ]
+      },
+      "at": 1793774980.564955
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Т3.4 ADMIN возвращает роль USER",
+      "method": "PUT",
+      "url": "{{baseUrl}}/api/v1/admin/users/4/role",
+      "auth": true,
+      "body": {
+        "role": "USER"
+      },
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "ms": 15.0,
+      "response": {
+        "id": 4,
+        "role": "USER"
+      },
+      "at": 1793774980.5799718
+    },
+    {
+      "folder": "3. Смена роли «на лету»",
+      "name": "Т3.5 тот же токен → аудит",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/v1/moderator/audit",
+      "auth": true,
+      "body": null,
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "ms": 31.5,
+      "response": {
+        "detail": "Недостаточно прав для выполнения операции"
+      },
+      "at": 1793774980.6124072
+    }
+  ]
+}

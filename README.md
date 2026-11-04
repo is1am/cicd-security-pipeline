@@ -25,3 +25,17 @@ python -m venv .venv
 
 Создайте репозиторий, выполните push, затем включите обязательную проверку
 `Security Gate` в Settings → Branches → Branch protection rules.
+
+## RBAC: схема БД и тесты API
+
+- `sql/rbac_schema.sql`: схема для PostgreSQL (FOREIGN KEY, ON DELETE CASCADE) и начальные данные
+- `postman/RBAC_PR5.postman_collection.json` и `RBAC_PR5.postman_environment.json`: 21 запрос (позитивные, негативные, смена роли «на лету»)
+
+Ручной прогон в Postman: запустите сервис
+
+```
+$env:JWT_SECRET="local-demo-secret-0123456789abcdef0123456789"; .venv\Scripts\python -m uvicorn app.main:app --port 8000
+```
+
+импортируйте оба JSON-файла, выберите окружение «ПР5 RBAC local» и запустите коллекцию (Run collection).
+Автоматический прогон тех же запросов: `.venv\Scripts\python scripts\run_collection.py`.

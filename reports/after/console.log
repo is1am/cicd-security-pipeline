@@ -5,13 +5,16 @@ rootdir: C:\Users\islam\Desktop\Клиент-серверные технолог
 configfile: pytest.ini
 testpaths: tests
 plugins: anyio-4.16.0, platformdirs-4.12.4
-collecting ... collected 5 items
+collecting ... collected 8 items
 
-tests/test_rbac.py::test_admin_creates_user PASSED                       [ 20%]
-tests/test_rbac.py::test_user_forbidden_on_admin PASSED                  [ 40%]
-tests/test_rbac.py::test_user_cannot_export_audit PASSED                 [ 60%]
-tests/test_rbac.py::test_forged_token_rejected PASSED                    [ 80%]
-tests/test_rbac.py::test_sql_injection_does_not_leak_users PASSED        [100%]
+tests/test_rbac.py::test_admin_creates_user PASSED                       [ 12%]
+tests/test_rbac.py::test_user_forbidden_on_admin PASSED                  [ 25%]
+tests/test_rbac.py::test_user_cannot_export_audit PASSED                 [ 37%]
+tests/test_rbac.py::test_forged_token_rejected PASSED                    [ 50%]
+tests/test_rbac.py::test_sql_injection_does_not_leak_users PASSED        [ 62%]
+tests/test_rbac.py::test_moderator_cannot_escalate_to_admin PASSED       [ 75%]
+tests/test_rbac.py::test_unknown_role_rejected PASSED                    [ 87%]
+tests/test_rbac.py::test_role_change_applies_without_new_token PASSED    [100%]
 
 ============================== warnings summary ===============================
 .venv\lib\site-packages\fastapi\testclient.py:1
@@ -19,8 +22,8 @@ tests/test_rbac.py::test_sql_injection_does_not_leak_users PASSED        [100%]
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 5 passed, 1 warning in 5.60s =========================
-[Tests · pytest] exit=0 time=7.8s
+======================== 8 passed, 1 warning in 5.61s =========================
+[Tests · pytest] exit=0 time=7.1s
 
 $ bandit -r app -f json -o reports\after\bandit.json --exit-zero
 [main]	INFO	profile include tests: None
@@ -28,25 +31,25 @@ $ bandit -r app -f json -o reports\after\bandit.json --exit-zero
 [main]	INFO	cli include tests: None
 [main]	INFO	cli exclude tests: None
 [json]	INFO	JSON output written to file: C:\Users\islam\Desktop\Клиент-серверные технологии и их безопасность\ПР5_CICD_Security\reports\after\bandit.json
-[SAST · Bandit] exit=0 time=1.5s
+[SAST · Bandit] exit=0 time=1.3s
 
 $ bandit -r app -q
-Run started:2026-11-02 14:31:14.016161+00:00
+Run started:2026-11-04 06:51:48.774526+00:00
 
 Test results:
 >> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'bearer'
    Severity: Low   Confidence: Medium
    CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
    More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: app\main.py:58:70
-57	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
-58	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
-59	
+   Location: app\main.py:72:70
+71	        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Неверный логин или пароль")
+72	    return {"access_token": create_token(row["id"], row["username"]), "token_type": "bearer"}
+73	
 
 --------------------------------------------------
 
 Code scanned:
-	Total lines of code: 179
+	Total lines of code: 215
 	Total lines skipped (#nosec): 0
 	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
 
@@ -62,7 +65,7 @@ Run metrics:
 		Medium: 1
 		High: 0
 Files skipped (0):
-[SAST · Bandit (вывод)] exit=1 time=1.7s
+[SAST · Bandit (вывод)] exit=1 time=1.2s
 
 $ semgrep scan --metrics=off --config p/python --config p/owasp-top-ten --config .semgrep/rbac-rules.yml --json -o reports\after\semgrep.json app
 ┌─────────────┐
@@ -96,11 +99,11 @@ See https://semgrep.dev/docs/reporting-false-negatives/
 
 $ pip-audit -r requirements.txt -f json -o reports\after\pip-audit.json
 No known vulnerabilities found
-[SCA · pip-audit] exit=0 time=53.6s
+[SCA · pip-audit] exit=0 time=58.0s
 
 $ pip-audit -r requirements.txt --desc off
 No known vulnerabilities found
-[SCA · pip-audit (вывод)] exit=0 time=52.5s
+[SCA · pip-audit (вывод)] exit=0 time=39.4s
 
 $ python.exe scripts/security_gate.py reports\after --policy security-policy.json --json reports\after\gate.json
 ## Security Gate
@@ -113,4 +116,4 @@ $ python.exe scripts/security_gate.py reports\after --policy security-policy.jso
 | Trivy | SCA | 0 | 0 |
 
 **Результат: ПРОЙДЕН ✅**
-[Security Gate] exit=0 time=0.4s
+[Security Gate] exit=0 time=0.2s

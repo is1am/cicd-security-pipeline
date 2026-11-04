@@ -6,7 +6,7 @@
       "tool": "Bandit",
       "type": "SAST",
       "id": "B105 hardcoded_password_string",
-      "where": "app/main.py:58",
+      "where": "app/main.py:72",
       "severity": "LOW",
       "blocking": false
     }

@@ -7,3 +7,7 @@ useDefault = true
 [[allowlists]]
 description = "Отчёты сканеров (данные, а не код)"
 paths = ['''^reports/''']
+
+[[allowlists]]
+description = "Postman-коллекция: заведомо поддельный JWT для негативного теста (подписан чужим ключом)"
+paths = ['''^postman/RBAC_PR5\.postman_collection\.json$''']
