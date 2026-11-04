@@ -1,13 +1,14 @@
-# Конфигурация Gitleaks: стандартные правила + исключение для отчётов сканеров.
-# В reports/ лежат JSON-отчёты pip-audit, в описаниях CVE которых есть
-# демонстрационные ключи и JWT из advisory (ложные срабатывания).
+# Конфигурация Gitleaks: стандартные правила + адресные исключения.
+# Синтаксис [allowlist] поддерживается всеми версиями Gitleaks 8.x.
 [extend]
 useDefault = true
 
-[[allowlists]]
-description = "Отчёты сканеров (данные, а не код)"
-paths = ['''^reports/''']
-
-[[allowlists]]
-description = "Postman-коллекция: заведомо поддельный JWT для негативного теста (подписан чужим ключом)"
-paths = ['''^postman/RBAC_PR5\.postman_collection\.json$''']
+[allowlist]
+description = "Данные, а не код"
+paths = [
+  # JSON-отчёты сканеров и API-тестов: примеры ключей и JWT из описаний CVE,
+  # токены тестового стенда (секрет стенда существует только во время прогона)
+  '''^reports/''',
+  # Postman-коллекция: заведомо поддельный JWT для негативного теста
+  '''^postman/RBAC_PR5\.postman_collection\.json$''',
+]
